@@ -1,0 +1,104 @@
+<media-mogul-configuration>
+    <config groupname="TaskPurger">
+        <properties>
+            <CLASS hidden="true">Maintenance</CLASS>
+            <TYPE hidden="true">TaskPurger</TYPE>
+            <NAME description="Name">Task Purger</NAME>
+            <APP_GROUP description="Aplication group">SYSGROUP2</APP_GROUP>
+            <NORMALLY_RUNNING hidden="true">n</NORMALLY_RUNNING>
+            <DOWNLOAD_PURGE description="Time out for purging download tasks">30</DOWNLOAD_PURGE>
+            <DEFAULT_PURGE description="Time out for purging all other tasks">7</DEFAULT_PURGE>
+            <ERROR_PURGE description="Time out for purging 'error'd tasks">30</ERROR_PURGE>
+            <CANCELLED_PURGE description="Time out for purging 'error'd tasks">7</CANCELLED_PURGE>
+        </properties>
+        <modules>
+            <module ref="TaskPurger">
+                <class>com.picdar.process2.Processing.TaskPurger.TaskPurger</class>
+                <config>
+                    <default-timeouts>
+                        <status name="PENDING">0</status>
+                        <status name="STARTING">0</status>
+                        <status name="RUNNING">0</status>
+                        <status name="PAUSING">0</status>
+                        <status name="PAUSED">0</status>
+                        <status name="STOPPING">0</status>
+                        <status name="SUSPENDING">0</status>
+                        <status name="SUSPENDED">0</status>
+                        <status name="CANCELLED">0</status>
+                        <status name="FINISHED">0</status>
+                        <status name="ERROR">0</status>
+                    </default-timeouts>
+                    <task-type name="DownloadZip">
+                        <status name="FINISHED">%%value:DOWNLOAD_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetDeleteTask">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="EditPublication">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetAddNoticeTask">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetTransformation">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="BulkEditFieldValues">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetIndexTask">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetUnindexTask">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetEnrichTask">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="AssetManualEnrichTask">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                    <task-type name="ScriptAction">
+                        <status name="FINISHED">%%value:DEFAULT_PURGE%%</status>
+                        <status name="ERROR">%%value:ERROR_PURGE%%</status>
+                        <status name="CANCELLED">%%value:CANCELLED_PURGE%%</status>
+                    </task-type>
+                </config>
+            </module>
+        </modules>
+        <schedule>
+            <scheduletype>scheduled</scheduletype>
+            <runinterval>
+                <count>10</count>
+                <intervalsize>second</intervalsize>
+            </runinterval>
+            <timedschedule>
+                <months/>
+                <dates/>
+                <weekdays/>
+                <hours>6</hours>
+                <minutes/>
+            </timedschedule>
+        </schedule>
+    </config>
+</media-mogul-configuration>

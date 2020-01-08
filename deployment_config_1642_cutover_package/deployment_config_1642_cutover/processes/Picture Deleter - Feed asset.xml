@@ -1,0 +1,71 @@
+<media-mogul-configuration>
+	<config groupname="AssetDeleter">
+		<properties>
+			<CLASS hidden="true">Lifecycle Management</CLASS>
+			<TYPE hidden="true">Deleter</TYPE>
+			<NAME description="Process name">Picture Deleter - Feed asset</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<TEMPLATE hidden="true">PurgerTemplate</TEMPLATE>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+
+			<feed-weed description="Weed period for feeds assets (in days)">30</feed-weed>
+			<feed-limit description="Oldest assets considered for weeding (in days)">90</feed-limit>
+			<schedule-interval-count>120</schedule-interval-count>
+			<schedule-type>continuous</schedule-type>
+			<TEMPLATE_PROPERTIES>
+				<BATCH_SIZE>100</BATCH_SIZE>
+
+				<!--
+					We want to select assets that match the following criteria:
+						- Has a lifecycle status of 'Created' or 'Feed'.
+						- Has no usage
+						- Is not part of a composite or gallery 
+						- The creation stamp is older than 30 days (for a feed asset) or 1 month (for a created asset).
+				-->
+
+				<!-- <criteria>
+					<![CDATA[
+asset_id in ( select  picture.asset_id from picture where
+    exists ( select 1 from asset a where UPPER(a.lifecycle_status) = 'FEED' and a.asset_id = picture.asset_id ) and
+    not exists ( select 1 from usage u where u.asset_id = picture.asset_id ) and 
+    not exists ( select 1 from linked_asset l where l.asset_id = picture.asset_id ) and
+    not exists ( select 1 from linked_asset l2 where l2.link_to = picture.asset_id ) and
+    picture.creation_stamp &gt; sysdate - %%value:feed-limit%% and 
+    picture.creation_stamp &lt; sysdate - %%value:feed-weed%% 
+)
+										]]></criteria> -->
+<!-- 2017/04/19 - the condition related to '(Sent to DTI)' is removed as there is now the usage deleter process to delete the DTI usage older than 30 days --> 
+				<criteria>
+					<![CDATA[
+					asset_id in ( select  picture.asset_id from picture where
+						exists ( select 1 from asset a where UPPER(a.lifecycle_status) = 'FEED' and a.asset_id = picture.asset_id ) and
+						not exists ( select 1 from usage u where u.asset_id = picture.asset_id ) and 
+						not exists ( select 1 from linked_asset l where l.asset_id = picture.asset_id ) and
+						not exists ( select 1 from linked_asset l2 where l2.link_to = picture.asset_id ) and
+						picture.creation_stamp &gt; sysdate - %%value:feed-limit%% and 
+						picture.creation_stamp &lt; sysdate - %%value:feed-weed%% 
+					)]]>
+				</criteria>
+<!--
+				<criteria>
+					<![CDATA[
+						( (UPPER(lifecycle_status) = 'FEED' and asset_id in (
+							select asset_id from picture where creation_stamp &lt; sysdate - %%value:feed-weed%%))
+						OR
+						(UPPER(lifecycle_status) = 'CREATED' and asset_id in (
+							select asset_id from picture where creation_stamp &lt; sysdate - value:created-weed)) )
+					]]></criteria>
+-->
+				<allowed_status>Feed</allowed_status>
+				<datasource>default</datasource>
+				<!-- Not currently used. -->
+				<saved_search_name description="Selection search">WeedingRule</saved_search_name>
+
+				<schedule-type>manual</schedule-type>
+				<schedule-interval-count>1</schedule-interval-count>
+				<schedule-interval-type>minute</schedule-interval-type>
+			</TEMPLATE_PROPERTIES>
+		</properties>
+	</config>
+</media-mogul-configuration>

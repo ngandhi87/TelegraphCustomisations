@@ -1,0 +1,49 @@
+<media-mogul-configuration>
+	<config groupname="LifecycleTransfer">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Tidy</TYPE>
+			<NAME description="Process name">Viewed items tidy</NAME>
+			<DATE_OLDER_ITEMS description="Age of removed links (in days)">1</DATE_OLDER_ITEMS>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<schedule-timed-minutes/>
+			<schedule-timed-weekdays/>
+			<schedule-timed-dates/>
+			<schedule-timed-months/>
+		</properties>
+		<modules>
+			<module ref="TidyViewedItems">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement-oracle>DELETE FROM VIEWED_ASSET WHERE TIMESTAMP &lt; sysdate - %%value:DATE_OLDER_ITEMS%%</statement-oracle>
+					<statement-postgres>DELETE FROM VIEWED_ASSET WHERE TIMESTAMP &lt; current_timestamp - interval '%%value:DATE_OLDER_ITEMS%% days'</statement-postgres>
+				</config>
+			</module>
+			<module ref="UpdateStructure">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement-oracle>UPDATE MM_AUDIT SET DATE_MODIFIED=SYSDATE WHERE AUDIT_ID = 'VIEWED_ASSET'</statement-oracle>
+					<statement-postgres>UPDATE MM_AUDIT SET DATE_MODIFIED=current_timestamp WHERE AUDIT_ID = 'VIEWED_ASSET'</statement-postgres>
+				</config>
+			</module>
+		</modules>
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>15</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months/>
+				<dates/>
+				<weekdays/>
+				<hours>1</hours>
+				<minutes/>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

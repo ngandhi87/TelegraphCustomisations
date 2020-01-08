@@ -1,0 +1,170 @@
+<media-mogul-configuration>
+	<config groupname="PageLoaderTemplate">
+		<modules>
+			<module ref="FileChecker">
+				<class>com.picdar.process2.Acquisition.FileChecker.FileChecker</class>
+				<config>
+					<directory>%%value:scanDir%%</directory>
+					<rejectsDir>%%value:rejectDir%%</rejectsDir>
+					<loadedDir>%%value:successDir%%</loadedDir>
+					<settleTime>5</settleTime>
+					<maxFiles>%%value:maxFiles:NO_LIMIT%%</maxFiles>
+					<batch-size>%%value:batch-size%%</batch-size>
+					<descend>false</descend>
+					<filterclass></filterclass>
+					<ignoreZeroLength>true</ignoreZeroLength>
+					<direxcludefilter>.*,Rejects,Loaded</direxcludefilter>
+					<dirincludefilter></dirincludefilter>
+					<fileexcludefilter>.*</fileexcludefilter>
+					<fileincludefilter>*</fileincludefilter>
+					<defaultCleanup>load</defaultCleanup>
+					<moveType>normal</moveType>
+				</config>
+			</module>
+
+			<module ref="FilenameParser">
+				<class>com.picdar.process2.Processing.FilenameParser.FilenameParser</class>
+				<config>
+					<datasource>%%value:datasource%%</datasource>
+					<tablename>PAGE</tablename>
+					<store-data><dataobject>PAGE_DO</dataobject></store-data>
+                                        %%value:fileelement%%
+				</config>
+			</module>
+
+			<module ref="Edition Code Creator">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>PAGE_DO</object-name>
+					<metadata-processors>
+						<processor ref="Concatenate edition attributes" class="com.picdar.process2.Processing.MetaDataProcessor.StringManipulator">
+							<properties>
+								<output-field>PUBLICATION_EDITION</output-field>
+								<string>{EDITION_NUMBER}{EDITORIAL_CODE}</string>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+
+			<!-- don't use the PUBLICATION_CODE to determine book for Press Run codes containing numeric and TBB and OTT as they willl be pullout books -->
+			<module ref="Book Determiner">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-do-item="PAGE_DO">
+						<rules>
+							<rule name="UsePressRunCode">
+								<criteria>
+						                        <conjunct type="or">
+										<criterion field="RUN_CODE" operator="contains" value="2"/>
+										<criterion field="RUN_CODE" operator="contains" value="3"/>
+										<criterion field="RUN_CODE" operator="contains" value="4"/>
+										<criterion field="RUN_CODE" operator="in" value="TBB,OTT"/>
+						                        </conjunct>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+
+					<object-name>PAGE_DO</object-name>
+					<remove-attribute name="PUBLICATION_CODE"/>
+				</config>
+			</module>
+
+			<module ref="Edifice Cleaning">
+				<class>com.picdar.process2.Repository.DataObjectCleaner.DataObjectCleaner</class>
+				<config>
+					<object-name>PAGE_DO</object-name>
+					<check_against_editions>PAGE</check_against_editions>
+					<save_as_version_attribute>SAVE_AS_VERSION</save_as_version_attribute>
+					<run_page_mappings>true</run_page_mappings>
+				</config>
+			</module>
+
+			<module ref="Check Required Fields">
+				<class>com.picdar.process2.Repository.DataObjectCleaner.DataObjectCleaner</class>
+				<config>
+					<object-name>PAGE_DO</object-name>
+					<check_against_required>PAGE</check_against_required>
+					<required-attributes>PUBLICATION_TITLE,PUBLICATION_EDITION,PUBLICATION_PAGE,PUBLICATION_SECTION,PUBLICATION_BOOK_NAME</required-attributes>
+				</config>
+			</module>
+			<module ref="MetaDataProcessor for setting lifecycle">
+                <class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+                <config>
+                    <object-name>PAGE_DO</object-name>
+                    <add-attributes>
+                        <add-attribute name="LIFECYCLE_STATUS">Archive</add-attribute>
+                        <add-attribute name="ORIGIN">Archive</add-attribute>
+                    </add-attributes>
+                </config>
+            </module>
+
+			<module ref="AssetMetadataExtractor">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetMetadataExtractor</class>
+				<config>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>PAGE_DO</dataobject></retrieve-data>
+					<store-data><dataobject>PAGE_DO</dataobject></store-data>
+					<allowed-types>PAGE</allowed-types>
+					<extract-primary-key>false</extract-primary-key>
+					<iptc-tag name="Contents">CONTENTS</iptc-tag>
+				</config>
+			</module>
+
+			<module ref="Transaction Start">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+			</module>
+
+			<module ref="DataObject Loader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<source-location>filesystem</source-location>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>false</match-by-primary-key>
+					<match-fields>PUBLICATION_TITLE,PUBLICATION_EDITION,PUBLICATION_DATE,PUBLICATION_PAGE,PUBLICATION_BOOK_NAME</match-fields>
+					<update-matched-records>false</update-matched-records>
+					<reject-unmatched-records>false</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<create-asset-versions>true</create-asset-versions>
+					<version-action>use_flag</version-action>
+					<version-action-flag>SAVE_AS_VERSION</version-action-flag>
+					<types-to-match>PAGE</types-to-match>
+					<create-asset-records>true</create-asset-records>
+					<object-name>PAGE_DO</object-name>
+					<store-data-object-properties>
+						<page>
+							<OVERRIDE_DATE_STAMPS>true</OVERRIDE_DATE_STAMPS>
+						</page>
+					</store-data-object-properties>
+				</config>
+			</module>
+
+			<module ref="Asset Set Loader">
+				<class>com.picdar.process2.Repository.AssetSetLoader.AssetSetLoader</class>
+				<config>
+					<mmte-store-assets>true</mmte-store-assets>
+					<AllowedDataObjectTypes>PAGE, PAGE_VERSION</AllowedDataObjectTypes>
+					<DontProcessNonexistentFiles>true</DontProcessNonexistentFiles>
+					<OnlyStoreAllowedTypes>true</OnlyStoreAllowedTypes>
+					<CreateNewCookie>true</CreateNewCookie>
+					<GenerateAssetProperties>true</GenerateAssetProperties>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>PAGE_DO</dataobject></retrieve-data>
+					<mmte-store-asset-set>%%value:asset-store-set%%</mmte-store-asset-set>
+					<map-production>true</map-production>
+					<source-location>filesystem</source-location>
+				</config>
+			</module>
+
+			<module ref="Transaction End">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

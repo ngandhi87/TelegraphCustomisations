@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMLData database-name="default" date="20191111" time="145636" >
+	<XMLDataObjects>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">115</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Config</attribute>
+				<attribute name="PREF_DESC" >Override sort options form lists</attribute>
+				<attribute name="PREF_NAME" >form_lists_sortoptions</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[<config>
+                <list name="SortByStory">
+                        <value name="creation_stamp DESC" display="Latest loaded first" />
+                        <value name="creation_stamp ASC" display="Oldest loaded first" />
+                        <value name="update_stamp DESC" display="Latest modified first" />
+                        <value name="update_stamp ASC" display="Oldest modified first" />
+                        <value name="filename DESC" display="Filename descending" />
+                        <value name="filename ASC" display="Filename ascending" />
+                        <value name="story_element_headline DESC" display="Headline descending" />
+                        <value name="story_element_headline ASC" display="Headline ascending" />
+                </list>
+
+                <list name="SortByPage">
+                        <value name="publication_date DESC, publication_page_number ASC, publication_title ASC, publication_edition ASC" display="Latest published first" />
+                        <value name="publication_date ASC, publication_page_number ASC, publication_title ASC, publication_edition ASC" display="Earliest published first" />
+                        <value name="publication_page_number ASC, publication_date DESC, publication_title ASC, publication_edition ASC" display="Page smallest to largest" />
+                        <value name="creation_stamp DESC" display="Latest loaded first" />
+                        <value name="creation_stamp ASC" display="Oldest loaded first" />
+                        <value name="update_stamp DESC" display="Latest modified first" />
+                        <value name="update_stamp ASC" display="Oldest modified first" />
+                        <value name="publication_edition DESC" display="Publication Edition descending" />
+                        <value name="publication_edition ASC" display="Publication Edition ascending" />
+                        <value name="publication_page_number DESC" display="Page (number only) largest to smallest" />
+                        <value name="publication_page_number ASC" display="Page (number only) smallest to largest" />
+                </list>
+
+                <list name="SortByUsage">
+                        <value optgroup="Asset" name="creation_stamp DESC" display="Latest loaded first" />
+                        <value optgroup="Asset" name="creation_stamp ASC" display="Oldest loaded first" />
+                        <value optgroup="Asset" name="update_stamp DESC" display="Latest modified first" />
+                        <value optgroup="Asset" name="update_stamp ASC" display="Oldest modified first" />
+                        <value optgroup="Print publications" name="u_publication_date DESC" display="Latest published first" />
+                        <value optgroup="Print publications" name="u_publication_date ASC" display="Earlest published first" />
+                        <value optgroup="Print publications" name="u_publication_page_number DESC" display="Page largest to smallest" />
+                        <value optgroup="Print publications" name="u_publication_page_number ASC" display="Page smallest to largest" />
+                        <value optgroup="Web/Syndication publications" name="u_published_start_date DESC" display="Latest sent/published on first" />
+                        <value optgroup="Web/Syndication publications" name="u_published_start_date ASC" display="Earlest sent/published on first" />
+                </list>
+</config>]]></attribute>
+				<attribute name="TIMESTAMP" day="11" day_name="Monday" month="11" month_name="November" year="2019" attr_type="date" >2019-11-11 14:47:03</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">500</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Config</attribute>
+				<attribute name="PREF_DESC" ></attribute>
+				<attribute name="PREF_NAME" >index_asset_count_threshold</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[0]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>			
+	</XMLDataObjects>
+</XMLData>

@@ -1,0 +1,8 @@
+enable_allow_imports true
+set_verbose true
+set_folder ./deployment_config_1642_cutover
+import_config settings
+import_config groovy_scripts
+import_config plugins
+import_config processes
+import_config transformers

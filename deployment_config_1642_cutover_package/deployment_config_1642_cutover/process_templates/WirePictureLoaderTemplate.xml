@@ -1,0 +1,198 @@
+<media-mogul-configuration>
+	<config groupname="WirePictureLoaderTemplate">
+		<modules>
+			<module ref="QueueChecker">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>%%value:queue-name%%</queue-name>
+					<item-location>package</item-location>
+					<limit>100</limit>
+					<batch-size>1</batch-size>
+					<store-data><props>QUEUE_INFO</props></store-data>
+				</config>
+			</module>
+			<module ref="Packager">
+				<class>com.picdar.process2.Acquisition.Packager.Packager</class>
+				<config>
+					<metadata-store-name>IMAGE_DO</metadata-store-name>
+					<metadata-default-datasource>default</metadata-default-datasource>
+					<metadata-default-tablename>PICTURE</metadata-default-tablename>
+					<check-queue-retry-limit>true</check-queue-retry-limit>
+					<package-metadata>
+						<property-store name="QUEUE_INFO">
+							<map propfield="FEED_NAME" dofield="FEED_NAME"/>
+						</property-store>
+						<filename-fields>FILENAME</filename-fields>
+						<filepath-fields>FILEPATH</filepath-fields>
+					</package-metadata>
+					<item-location>filesystem</item-location>
+					<text-report>false</text-report>
+					<loaded-directory>%%value:loadedDir%%</loaded-directory>
+					<rejected-directory>%%value:rejectsDir%%</rejected-directory>
+					<partially-rejected-directory>%%value:rejectsDir%%</partially-rejected-directory>
+					<move-package>true</move-package>
+					<delete-on-success>%%value:deleteOnSuccess:false%%</delete-on-success>
+					<reject-condition>all</reject-condition>
+					<descend>false</descend>
+					<ignored-items-store>ignored-items</ignored-items-store>
+					<rejected_items-store>rejected-items</rejected_items-store>
+					<successful-items-store>successful-items</successful-items-store>
+					<move-type>normal</move-type>
+					<ignoreZeroLength>true</ignoreZeroLength>
+					<direxcludefilter>.*</direxcludefilter>
+					<dirincludefilter></dirincludefilter>
+					<fileexcludefilter>.*</fileexcludefilter>
+					<fileincludefilter></fileincludefilter>
+				</config>
+			</module>
+			<module ref="AssetMetadataExtractor">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetMetadataExtractor</class>
+				<config>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>IMAGE_DO</dataobject></retrieve-data>
+					<store-data><asset-metadata>IMAGE_MD</asset-metadata><dataobject>IMAGE_DO</dataobject></store-data>
+					<extract-primary-key iptc-tag="external ref">false</extract-primary-key>
+					%%value:iptc-mappings%%
+				</config>
+			</module>
+
+			<module ref="SetLowQualityFlag">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>IMAGE_DO</object-name>
+					<metadata-processors>
+						<processor class="com.picdar.process2.Processing.MetaDataProcessor.LowResMetadataProcessor">
+							<properties>
+								<metadata-object>IMAGE_MD</metadata-object>
+								<!-- 1260000/3 = 420000 and LowResMetadataProcessor does the check with less than condition, not less than and equal, hence plus 1 -->
+								<resolution-limit>420001</resolution-limit>
+								<flag-name>LOW_QUALITY</flag-name>
+								<flag-value>true</flag-value>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+
+			<module ref="AssetIdentifier">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetTypeChecker</class>
+				<config>
+					<allowedtypes>%%value:allowed-types%%</allowedtypes>
+					<retrieve-data><asset-metadata>IMAGE_MD</asset-metadata></retrieve-data>
+				</config>
+			</module>
+
+			<module ref="CHP dataobject to CHP XML">
+				<class>com.picdar.process2.Processing.DataObjects2XML.DataObjects2XML</class>
+				<config>
+					<read-name>IMAGE_DO</read-name>
+					<store-name>IMAGE_DO_XML</store-name>
+				</config>
+			</module>
+			<!--
+			<module ref="debug1">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+					<message>Before transfo</message>
+					<inspect>IMAGE_DO_XML</inspect>
+					<inspect>IMAGE_DO</inspect>
+				</config>
+			</module>
+			-->
+			<module ref="Transform Asset Metadata">
+				<class>com.picdar.process2.Processing.XMLTransformer.XMLTransformer</class>
+				<config>
+					<transform name="WirePicture2DOXML">
+						<readname>IMAGE_DO_XML</readname>
+						<storename>MetadataDOA</storename>
+					</transform>
+					<failureiscritical>false</failureiscritical>
+				</config>
+			</module>
+
+			<module ref="Converts to dataobject">
+				<class>com.picdar.process2.Repository.MetadataConverter.MetaDataConverter</class>
+				<config>
+					<object-name>MetadataDOA</object-name>
+					<store-name>IMAGE_DO</store-name>
+					<dataobjects-to-store>PICTURE</dataobjects-to-store>
+				</config>
+			</module>		
+
+			<module ref="TransactionStart">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+			</module>
+			<module ref="DataObjectLoader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<source-location>filesystem</source-location>
+					<match-existing-records>false</match-existing-records>
+					<create-asset-records>true</create-asset-records>
+					<version-action>PUSH_ORIGINAL_TO_VERSION</version-action>
+					<object-name>IMAGE_DO</object-name>
+					<append-attributes>%%value:append-attributes%%</append-attributes>
+				</config>
+			</module>
+			<module ref="AssetSetLoader">
+				<class>com.picdar.process2.Repository.AssetSetLoader.AssetSetLoader</class>
+				<config>
+					<mmte-store-assets>true</mmte-store-assets>
+					<AllowedDataObjectTypes>PICTURE</AllowedDataObjectTypes>
+					<CreateNewCookie>true</CreateNewCookie>
+					<GenerateAssetProperties>true</GenerateAssetProperties>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data>
+						<metadata>IMAGE_MD</metadata>
+						<dataobject>IMAGE_DO</dataobject>
+					</retrieve-data>
+					<mmte-store-asset-set>%%value:asset-store-set%%</mmte-store-asset-set>
+					<source-location>filesystem</source-location>
+					<retrieve-data>
+						<asset-sets>IMAGE_DO</asset-sets>
+						<asset-set>IMAGE_DO</asset-set>
+					</retrieve-data>
+				</config>
+			</module>
+			<module ref="Set owner">
+				<class>com.picdar.process2.Repository.Security.SetOwnershipAndPolicies</class>
+				<config>
+					<readName>IMAGE_DO</readName>
+					<default>
+						<owner role="%%value:OWNER%%"/>
+					</default>
+				</config>
+			</module>
+			<module ref="TransactionEnd">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+
+			<!-- Remove ApplyLobbyTemplate per CR requested by Mike Shape as part of Cost Indicator project -->
+
+			<!--
+			The ingested image should be indexed as part of saving transcation already
+			but if there is a problem with searching for cost indicator (set by asset trigger upon saving image), 
+			uncomment following module to force re-index again
+			
+			<module ref="Re-index asset after setting cost indicator">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>default</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>IMAGE_DO</metadata-object-name>
+					<indextables>picture,story,media,composite,document</indextables>
+					<indexer-action>index</indexer-action>
+					<index-priority>modification</index-priority>
+				</config>
+			</module>			
+			-->
+			
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

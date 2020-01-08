@@ -1,0 +1,144 @@
+<media-mogul-configuration>
+	<config groupname="Queuer Change Owner Action Images">
+		<properties>
+			<CLASS hidden="true">Telegraph Workflows</CLASS>
+			<TYPE hidden="true">Change Owner</TYPE>
+			<NAME hidden="true">Change Owner for assets from DTI</NAME>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<START_URL/>
+			<APP_GROUP>SYSGROUP1</APP_GROUP>
+			<OWNER>Library Audit</OWNER>
+			<DEFAULT_DATE>01/01/2015</DEFAULT_DATE>
+		</properties>
+
+
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>6</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+
+		<modules>
+<!-- Find all records that were created in DTI and pushed over via CMIS 
+     that are still owened by 'System' and re-own them to 'Library Audit'
+     NB: this could be a trigger but there is no means of identifying the usage based on the
+         asset.
+
+     NB2: index required CREATE INDEX USAGE_UPDATE_STAMP ON USAGE (UPDATE_STAMP, ASSET_ID) tablespace CHPIDXSPACE
+
+-->
+			<module ref="Find applicable records">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<xcriteria><![CDATA[
+asset_id in (
+select u2.asset_id from usage u, usage u2, dti_usage d 
+where 
+  u2.asset_id = u.asset_id and 
+  u.asset_id like 'TELEMMGLPICT%' and 
+  upper(u.status) = 'PUBLISHED' and 
+  u.usage_id = d.asset_id and 
+  d.creation_stamp > $$RECORD$$
+group by u2.asset_id 
+having(count(u2.asset_id)) = 1
+) and asset.owner_id = 'System'
+]]></xcriteria>
+					<criteria><![CDATA[
+asset_id in (
+select asset_id from picture where
+creation_stamp > $$RECORD$$ and
+feed_name = 'DTI'
+) and asset.owner_id = 'System'
+]]></criteria>
+					<datasource>default</datasource>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
+					<dateformat>dd/MM/yyyy</dateformat>
+					<defaultDate>%%value:DEFAULT_DATE%%</defaultDate>
+					<idfield>ASSET_ID</idfield>
+					<table>asset</table>
+					<limit>0</limit>
+					<batchsize>1</batchsize>
+				</config>
+
+			</module>
+			
+ 			<!-- Start the transaction. -->
+			<module ref="TransactionStart">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+				<config/>
+			</module>
+
+			<module ref="Read the record from CHP">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>CHP_DO</do-store-name>
+					<type>ASSET</type>
+				</config>
+			</module>
+
+			<!-- Save the asset. -->
+			<module ref="DataObjectLoader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<object-name>CHP_DO</object-name>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>true</match-by-primary-key>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>true</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<types-to-match>ASSET</types-to-match>
+				</config>
+			</module>
+
+			<module ref="Set owner">
+				<class>com.picdar.process2.Repository.Security.SetOwnershipAndPolicies</class>
+				<config>
+					<readName>CHP_DO</readName><!-- for primary key -->
+					<default>
+						<owner role="%%value:OWNER%%"/>
+					</default>
+				</config>
+			</module>
+			
+			<module ref="TransactionEnd">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+
+			<module ref="Complete">
+				<class>com.picdar.process2.Core.ChangeProcessItemStatus</class>
+				<config>
+					<status>DONE</status>
+				</config>
+			</module>
+
+			<module ref="Re-index asset because of ownership changes">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>default</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>CHP_DO</metadata-object-name>
+					<indextables>picture,story,media,composite,document</indextables>
+					<batchsize>10</batchsize>
+					<indexer-action>index</indexer-action>
+					<use-index-manager-for-batch>true</use-index-manager-for-batch>
+					<index-priority>modification</index-priority>
+				</config>
+			</module>	
+
+		</modules>
+
+	</config>
+</media-mogul-configuration>

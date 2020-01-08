@@ -1,0 +1,325 @@
+<media-mogul-configuration>
+	<config groupname="eLoaderPictureIngestionTemplate">
+		<modules>
+			<module ref="QueueChecker">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>%%value:queue-name%%</queue-name>
+					<item-location>package</item-location>
+					<sort-items>%%value:sort-by-priority%%</sort-items>
+					<limit>100</limit>
+					<batch-size>1</batch-size>
+					<store-data><props>QUEUE_INFO</props></store-data>
+					<fail-rejected>true</fail-rejected>
+				</config>
+			</module>
+			<module ref="EmailUnpacker">
+				<class>com.picdar.process2.Processing.EmailUnpacker.EmailUnpacker</class>
+				<config>
+					<package-parent-directory>%%value:package-parent-directory%%</package-parent-directory>
+					<package-location-store-name>PACKAGE_LOC</package-location-store-name>
+					<metadata-properties-store-name>COMMON_METADATA</metadata-properties-store-name>
+					<filepath-to-mimetype-store-name>FILEPATH_TO_SUFFIX</filepath-to-mimetype-store-name>
+					<ignored-emails-directory>%%value:ignored-emails-directory%%</ignored-emails-directory>
+					<partially-failed-emails-directory>%%value:partially-failed-emails-directory%%</partially-failed-emails-directory>
+					<content-types>
+						<action>%%value:content-type-action%%</action>
+						<values>%%value:content-type-values%%</values>
+					</content-types>
+					<discard-duplicate-attachments>%%value:discard-duplicate-attachments%%</discard-duplicate-attachments>
+					<concatenate-message-bodies>%%value:concatenate-message-bodies%%</concatenate-message-bodies>
+					<remove-signatures>%%value:remove-signatures%%</remove-signatures>
+					<move-failed-emails>%%value:move-failed-emails%%</move-failed-emails>
+					<failed-emails-directory>%%value:failed-emails-directory%%</failed-emails-directory>
+					<get-metadata-from-message>%%value:get-metadata-from-message%%</get-metadata-from-message>
+					<metadata-names>%%value:metadata-names%%</metadata-names>
+					<output-package-metadata>%%value:output-package-metadata%%</output-package-metadata>
+					<filter-archive-types>%%value:filter-archive-types%%</filter-archive-types>
+					<archive-extraction-timeout>%%value:archive-extraction-timeout%%</archive-extraction-timeout>
+					<execution-type>MMTE</execution-type>
+					<MMTE>%%value:mmte%%</MMTE>
+				</config>
+			</module>
+			<module ref="Packager">
+				<class>com.picdar.process2.Acquisition.Packager.Packager</class>
+				<config>
+					<package-location-store>PACKAGE_LOC</package-location-store>
+					<package-file-to-type-store>FILEPATH_TO_SUFFIX</package-file-to-type-store>
+					<metadata-store-name>IMAGE_DO</metadata-store-name>
+					<metadata-default-datasource>%%value:datasource%%</metadata-default-datasource>
+					<metadata-default-tablename>PICTURE</metadata-default-tablename>
+					<package-metadata>
+						<property-store name="QUEUE_INFO">
+							<map propfield="FEED_NAME" dofield="FEED_NAME"/>
+						</property-store>
+						<property-store name="COMMON_METADATA">
+							<map propfield="MESSAGE_BODY" dofield="EMAIL_CONTENT"/>
+							<map propfield="Subject" dofield="EMAIL_SUBJECT"/>
+							<map propfield="From" dofield="EMAIL_SENDER"/>
+						</property-store>
+						<filename-fields>FILENAME</filename-fields>
+						<filepath-fields>FILEPATH</filepath-fields>
+					</package-metadata>
+					<item-location>filesystem</item-location>
+					<text-report>true</text-report>
+					<loaded-directory>%%value:loadedDir%%</loaded-directory>
+					<rejected-directory>%%value:rejectsDir%%</rejected-directory>
+					<partially-rejected-directory>%%value:partialRejectsDir%%</partially-rejected-directory>
+					<move-package>true</move-package>
+					<delete-on-success>false</delete-on-success>
+					<reject-condition>all</reject-condition>
+					<descend>true</descend>
+					<ignored-items-store>ignored-items</ignored-items-store>
+					<rejected_items-store>rejected-items</rejected_items-store>
+					<successful-items-store>successful-items</successful-items-store>
+					<move-type>normal</move-type>
+					<ignoreZeroLength>true</ignoreZeroLength>
+					<direxcludefilter>.*</direxcludefilter>
+					<dirincludefilter></dirincludefilter>
+					<fileexcludefilter>.*</fileexcludefilter>
+					<fileincludefilter></fileincludefilter>
+				</config>
+			</module>
+			<module ref="MetaDataProcessor">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>IMAGE_DO</object-name>
+					<metadata-processors>
+						<processor ref="CHILD_DO" class="com.picdar.process2.Processing.MetaDataProcessor.CreateChildObject">
+							<properties>
+								<KIND_NAME>EMAIL_DETAILS</KIND_NAME>
+							</properties>
+						</processor>
+						<processor ref="MESSAGE" class="com.picdar.process2.Processing.MetaDataProcessor.TransferObjectValues">
+							<properties>
+								<create-target-fields>true</create-target-fields>
+								<transfer-type>Simple</transfer-type>
+								<source-field>EMAIL_CONTENT</source-field>
+								<target_1>IMAGE_DO.[EMAIL_DETAILS]BODY</target_1>
+							</properties>
+						</processor>
+						<processor ref="SUBJECT" class="com.picdar.process2.Processing.MetaDataProcessor.TransferObjectValues">
+							<properties>
+								<create-target-fields>true</create-target-fields>
+								<transfer-type>Simple</transfer-type>
+								<source-field>EMAIL_SUBJECT</source-field>
+								<target_1>IMAGE_DO.[EMAIL_DETAILS]SUBJECT</target_1>
+							</properties>
+						</processor>
+						<processor ref="SENDER" class="com.picdar.process2.Processing.MetaDataProcessor.TransferObjectValues">
+							<properties>
+								<create-target-fields>true</create-target-fields>
+								<transfer-type>Simple</transfer-type>
+								<source-field>EMAIL_SENDER</source-field>
+								<target_1>IMAGE_DO.[EMAIL_DETAILS]SENDER</target_1>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+			<module ref="AssetMetadataExtractor">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetMetadataExtractor</class>
+				<config>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>IMAGE_DO</dataobject></retrieve-data>
+					<store-data><asset-metadata>IMAGE_MD</asset-metadata><dataobject>IMAGE_DO</dataobject></store-data>
+					<extract-primary-key iptc-tag="external ref">false</extract-primary-key>
+					%%value:iptc-mappings%%
+				</config>
+			</module>
+			<module ref="SetLowQualityFlag">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>IMAGE_DO</object-name>
+					<metadata-processors>
+						<processor class="com.picdar.process2.Processing.MetaDataProcessor.LowResMetadataProcessor">
+							<properties>
+								<metadata-object>IMAGE_MD</metadata-object>
+								<!-- 1260000/3 = 420000 and LowResMetadataProcessor does the check with less than condition, not less than and equal, hence plus 1 -->
+								<resolution-limit>420001</resolution-limit>
+								<flag-name>LOW_QUALITY</flag-name>
+								<flag-value>true</flag-value>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+			<!--
+			<module ref="Log the Metadata">		
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class><config>
+				</config>
+			</module>
+			-->
+			<module ref="AssetIdentifier">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetTypeChecker</class>
+				<config>
+					<allowedtypes>%%value:allowed-types%%</allowedtypes>
+					<retrieve-data><asset-metadata>IMAGE_MD</asset-metadata></retrieve-data>
+				</config>
+			</module>
+
+			<module ref="CHP dataobject to CHP XML">
+				<class>com.picdar.process2.Processing.DataObjects2XML.DataObjects2XML</class>
+				<config>
+					<read-name>IMAGE_DO</read-name>
+					<store-name>IMAGE_DO_XML</store-name>
+				</config>
+			</module>
+			<!--
+			<module ref="debug1">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+					<message>Before transfo</message>
+					<inspect>IMAGE_DO_XML</inspect>
+					<inspect>IMAGE_DO</inspect>
+				</config>
+			</module>
+			-->
+			<module ref="Transform Asset Metadata">
+				<class>com.picdar.process2.Processing.XMLTransformer.XMLTransformer</class>
+				<config>
+					<transform name="EmailPicture2DOXML">
+						<readname>IMAGE_DO_XML</readname>
+						<storename>MetadataDOA</storename>
+					</transform>
+					<failureiscritical>false</failureiscritical>
+				</config>
+			</module>
+
+			<module ref="Converts to dataobject">
+				<class>com.picdar.process2.Repository.MetadataConverter.MetaDataConverter</class>
+				<config>
+					<filename-store-if-false-key>IMAGE_DO_XML</filename-store-if-false-key>
+					<object-name>MetadataDOA</object-name>
+					<store-name>IMAGE_DOA</store-name>
+					<store-other-items-as>EMAIL_EMD_DOA</store-other-items-as>
+					<store-as-dataobject>true</store-as-dataobject>
+					<dataobjects-to-store>PICTURE,EMAIL_DETAILS</dataobjects-to-store>
+
+				</config>
+			</module>
+			<!--
+			<xmodule ref="debug2">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+					<message>After transfo</message>
+				</config>
+			</xmodule>
+			-->
+			<module ref="TransactionStart">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+			</module>
+			<module ref="DataObjectLoader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<source-location>filesystem</source-location>
+					<match-existing-records>false</match-existing-records>
+					<create-asset-records>true</create-asset-records>
+					<version-action>PUSH_ORIGINAL_TO_VERSION</version-action>
+					<object-name>IMAGE_DOA</object-name>
+					<append-attributes>%%value:append-attributes%%</append-attributes>
+				</config>
+			</module>
+			<module ref="AssetSetLoader">
+				<class>com.picdar.process2.Repository.AssetSetLoader.AssetSetLoader</class>
+				<config>
+					<mmte-store-assets>true</mmte-store-assets>
+					<AllowedDataObjectTypes>PICTURE</AllowedDataObjectTypes>
+					<CreateNewCookie>true</CreateNewCookie>
+					<GenerateAssetProperties>true</GenerateAssetProperties>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data>
+						<metadata>IMAGE_MD</metadata>
+						<dataobject>IMAGE_DOA</dataobject>
+					</retrieve-data>
+					<mmte-store-asset-set>%%value:asset-store-set%%</mmte-store-asset-set>
+					<source-location>filesystem</source-location>
+				</config>
+			</module>
+			<module ref="Set owner">
+				<class>com.picdar.process2.Repository.Security.SetOwnershipAndPolicies</class>
+				<config>
+					<readName>IMAGE_DOA</readName>
+					<default>
+						<owner role="%%value:OWNER%%"/>
+					</default>
+				</config>
+			</module>
+			<module ref="Saves Extended Meta Data of XML">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<source-location>filesystem</source-location>
+					<match-existing-records>false</match-existing-records>
+					<match-by-primary-key>false</match-by-primary-key>
+					<match-fields/>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>false</reject-unmatched-records>
+					<ignore-matched-records>true</ignore-matched-records>
+					<ignore-item-not-present>true</ignore-item-not-present>
+					<create-asset-records>false</create-asset-records>
+					<create-asset-versions>false</create-asset-versions>
+					<object-name>EMAIL_EMD_DOA</object-name>
+				</config>
+			</module>
+
+			<module ref="TransactionEnd">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+
+			<!-- template:ApplyLobbyTemplate -->
+	
+			<!--
+			The ingested image should be indexed as part of saving transcation already
+			but if there is a problem with searching for cost indicator (set by asset trigger upon saving image), 
+			uncomment following module to force re-index again
+			
+			<module ref="Re-index asset after setting cost indicator">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>default</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>IMAGE_DOA</metadata-object-name>
+					<indextables>picture,story,media,composite,document</indextables>
+					<indexer-action>index</indexer-action>
+					<index-priority>modification</index-priority>
+				</config>
+			</module>			
+			-->
+	
+			<!--
+			<module ref="debug3">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+					<message>After commit</message>
+				</config>
+			</module>
+			-->
+
+			<module ref="Unignore items that are already in queue">
+				<class>com.picdar.process2.Core.ChangeProcessItemStatus</class>
+<!-- this does not seem to trigger properly... so unignore all at this point  -->
+<!-- if this doesn't happen the package itself fails and causes the asset to be re-ingested -->
+				<config>
+					<xrun_conditions rule-process-item="">
+						<rules>
+							<rule name="UndoIgnore">
+								<criteria>
+									<criterion field="Status" operator="eq" value="IGNORED" type="STRING"/>
+								</criteria>
+							</rule>
+						</rules>
+					</xrun_conditions>
+					<status>SUCCESS</status>
+				</config>
+			</module>
+
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

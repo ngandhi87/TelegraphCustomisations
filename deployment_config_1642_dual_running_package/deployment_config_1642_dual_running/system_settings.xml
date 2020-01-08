@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMLData database-name="default" date="20190920" time="104228" >
+	<XMLDataObjects>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">100</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >Retrieve thumbnail images directly from the storage appliance</attribute>
+				<attribute name="PREF_NAME" >storageDirectAccess</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[true]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">101</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >XML configuration for storage connectors</attribute>
+				<attribute name="PREF_NAME" >storageConnectors</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[%localised:storageConnectors%]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">102</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >XML configuration for storage connector rules</attribute>
+				<attribute name="PREF_NAME" >storageConnectorRules</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[<storage_connector_rules>
+	<rule name="Local1">
+		<criteria>
+			<criterion operator="all"/>
+		</criteria>
+	</rule>
+</storage_connector_rules>]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">103</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >The default storage connector</attribute>
+				<attribute name="PREF_NAME" >storageDefaultConnector</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[Local1]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">104</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >XML configuration for transform connectors</attribute>
+				<attribute name="PREF_NAME" >transformConnectors</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[%localised:transformConnectors%]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">105</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >XML configuration for transform connector rules</attribute>
+				<attribute name="PREF_NAME" >transformConnectorRules</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[<transform_connector_rules>
+	<rule name="Trans">
+		<criteria>
+			<criterion operator="all"/>
+		</criteria>
+	</rule>
+</transform_connector_rules>]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">106</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >The default transform connector</attribute>
+				<attribute name="PREF_NAME" >transformDefaultConnector</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[Trans]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">107</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >The limit of concurrent read streams</attribute>
+				<attribute name="PREF_NAME" >readStreamLimit</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[25]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">108</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Storage</attribute>
+				<attribute name="PREF_DESC" >The limit of concurrent write streams</attribute>
+				<attribute name="PREF_NAME" >writeStreamLimit</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[10]]></attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">18</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >CHP</attribute>
+				<attribute name="PREF_TYPE" >User Interface</attribute>
+				<attribute name="PREF_DESC" >Preference overrides for CHP.</attribute>
+				<attribute name="PREF_NAME" >pref_override</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[Hitlist.showLegalNoticesIcon;Hitlist.showCopyrightNoticesIcon;Hitlist.showFeeNoticesIcon;Hitlist.showCopyrightIcon;General.Theme]]></attribute>
+				<attribute name="TIMESTAMP" day="11" day_name="Monday" month="11" month_name="November" year="2019" attr_type="date" >2019-11-11 13:51:58</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">109</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >User Interface</attribute>
+				<attribute name="PREF_DESC" >Override/Additional icons</attribute>
+				<attribute name="PREF_NAME" >icon_registry</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[{
+	"copyright_icon":"far fa-copyright tmg_copyright_icon_colour",
+	"fee-warning":"LOOKUP__NOTICE_FEE",
+	"correction_icon":"fas fa-check-double tmg_correction_icon_colour",
+	"production_note":"LOOKUP__NOTICE_PRODUCTION_NOTE",
+	"legal_icon":"fas fa-balance-scale tmg_legal_icon_colour",
+	"LowQuality":"fas fa-thumbs-down"
+}]]></attribute>
+				<attribute name="TIMESTAMP" day="11" day_name="Monday" month="11" month_name="November" year="2019" attr_type="date" >2019-11-11 14:10:09</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">113</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >All</attribute>
+				<attribute name="PREF_TYPE" >Application Theme</attribute>
+				<attribute name="PREF_DESC" ></attribute>
+				<attribute name="PREF_NAME" >TMGTheme</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[{
+"css": ".tmg_copyright_icon_colour {color:rgb(138, 30, 25)} .tmg_correction_icon_colour {color:rgb(66, 245, 93)} .tmg_legal_icon_colour {color:rgb(6, 86, 250)}",
+"colourmap": [
+"cell_selected_bg:rgba(255, 255, 0, 1)",
+"cell_row_selected_bg:rgba(255, 255, 0, 1)",
+"asset_fees_bg:rgba(255, 0, 0, 1)",
+"asset_caution_bg:rgba(51, 102, 255, 1)",
+"asset_legal_bg:rgba(255, 0, 0, 1)"
+]
+}]]></attribute>
+				<attribute name="TIMESTAMP" day="11" day_name="Monday" month="11" month_name="November" year="2019" attr_type="date" >2019-11-11 16:23:34</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>		
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">114</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >CHP</attribute>
+				<attribute name="PREF_TYPE" >User Interface</attribute>
+				<attribute name="PREF_DESC" ></attribute>
+				<attribute name="PREF_NAME" >General.Theme</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[TMGTheme]]></attribute>
+				<attribute name="TIMESTAMP" day="11" day_name="Monday" month="11" month_name="November" year="2019" attr_type="date" >2019-11-11 13:49:30</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">111</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >SystemManagement</attribute>
+				<attribute name="PREF_TYPE" >Config</attribute>
+				<attribute name="PREF_DESC" >Flag to enable the validation of request parameters</attribute>
+				<attribute name="PREF_NAME" >enable_request_validation</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[false]]></attribute>
+				<attribute name="TIMESTAMP" day="25" day_name="Wednesday" month="09" month_name="September" year="2019" attr_type="date" >2019-09-25 22:24:43</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>
+		<XMLDataObject type="MM_APP_PREFS">
+			<primary_key type="MM_APP_PREFS">112</primary_key>
+			<state>default</state>
+			<attributes>
+				<attribute name="APP_NAME" >CHP</attribute>
+				<attribute name="PREF_TYPE" >User Interface</attribute>
+				<attribute name="PREF_DESC" ></attribute>
+				<attribute name="PREF_NAME" >enable_duplicate_usage</attribute>
+				<attribute name="PREF_VALUE" ><![CDATA[true]]></attribute>
+				<attribute name="TIMESTAMP" day="27" day_name="Friday" month="09" month_name="September" year="2019" attr_type="date" >2019-09-27 14:28:30</attribute>
+			</attributes>
+			<specialist>
+			</specialist>
+		</XMLDataObject>		
+	</XMLDataObjects>
+</XMLData>

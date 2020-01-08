@@ -1,0 +1,47 @@
+<media-mogul-configuration>
+	<config groupname="WorkflowScriptUpgrader">
+		<properties>
+			<CLASS hidden="true">Upgrade</CLASS>
+			<TYPE hidden="true">Workflow script</TYPE>
+			<NAME description="The name of the process">Workflow script upgrader</NAME>
+			<APP_GROUP description="Application group">CHP 1</APP_GROUP>
+			<NORMALLY_RUNNING description="Should this process be normally running" hidden="true">n</NORMALLY_RUNNING>
+		</properties>
+		<modules>
+		
+			<module ref="Create process item">
+				<class>com.picdar.process2.Acquisition.ProcessItemCreator.ProcessItemCreator</class>
+				<config>
+					<name>WSU</name>
+				</config>
+			</module>
+
+
+			<module ref="Upgrade the workflow scripts">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<script-name>WorkflowScriptUpgrader</script-name>
+					<script-properties>
+					</script-properties>
+				</config>
+			</module>
+			
+		</modules>
+
+		<schedule>
+			<scheduletype>manual</scheduletype>
+			<runinterval>
+				<count>5</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1,6,10</dates>
+				<weekdays>1-5</weekdays>
+				<hours>0,4,8,12,16,20</hours>
+				<minutes>0,15,30,45</minutes>
+			</timedschedule>
+		</schedule>
+
+	</config>
+</media-mogul-configuration>
