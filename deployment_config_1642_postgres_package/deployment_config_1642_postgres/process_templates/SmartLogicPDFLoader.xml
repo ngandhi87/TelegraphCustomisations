@@ -1,0 +1,271 @@
+<media-mogul-configuration>
+	<config groupname="PageLoaderTemplate">
+		<modules>
+			<module ref="FileChecker">
+				<class>com.picdar.process2.Acquisition.FileChecker.FileChecker</class>
+				<config>
+					<directory>%%value:scanDir%%</directory>
+					<rejectsDir>%%value:rejectDir%%</rejectsDir>
+					<loadedDir>%%value:successDir%%</loadedDir>
+					<settleTime>5</settleTime>
+					<maxFiles>NO_LIMIT</maxFiles>
+					<batch-size>%%value:batch-size%%</batch-size>
+					<descend>true</descend>
+					<filterclass></filterclass>
+					<ignoreZeroLength>true</ignoreZeroLength>
+					<direxcludefilter>.*</direxcludefilter>
+					<dirincludefilter></dirincludefilter>
+					<fileexcludefilter>.*</fileexcludefilter>
+					<fileincludefilter>*</fileincludefilter>
+					<defaultCleanup>load</defaultCleanup>
+					<moveType>date-based</moveType>
+				</config>
+			</module>
+
+			<module ref="FilenameParser">
+				<class>com.picdar.process2.Processing.FilenameParser.FilenameParser</class>
+				<config>
+					<datasource>%%value:datasource%%</datasource>
+					<tablename>PAGE</tablename>
+					<store-data><dataobject>PAGE_DO</dataobject></store-data>
+					<fileelement offset="0" separator="-">
+						<fieldname index="0">EDITION_NUMBER</fieldname>
+						<fieldname index="1">PUBLICATION_PAGE</fieldname>
+						<fieldname index="2">EDITORIAL_CODE</fieldname>
+						<fieldname index="3">AD_CODE</fieldname>
+						<fieldname index="4">RUN_CODE</fieldname>
+						<fieldname index="5">PUBLICATION_CODE</fieldname>
+						<fieldname index="5">PUBLICATION_TITLE</fieldname>
+						<fieldname index="7" dateformat="ddMMyy" trim-leading-zeroes="no">PUBLICATION_DATE</fieldname>
+						<fieldname index="7" dateformat="ddMMyy" trim-leading-zeroes="no">CREATION_STAMP</fieldname>
+						<fieldname index="7" dateformat="ddMMyy" trim-leading-zeroes="no">UPDATE_STAMP</fieldname>
+					</fileelement>
+				</config>
+			</module>
+
+			<module ref="Edition Code Creator">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>PAGE_DO</object-name>
+					<metadata-processors>
+						<processor ref="Concatenate edition attributes" class="com.picdar.process2.Processing.MetaDataProcessor.StringManipulator">
+							<properties>
+								<output-field>PUBLICATION_EDITION</output-field>
+								<string>{EDITION_NUMBER}{EDITORIAL_CODE}</string>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+
+			<!-- don't use the PUBLICATION_CODE to determine book for Press Run codes containing numeric and TBB, TBD and OTT as they willl be pullout books, TBS is Sport Tabloid book, PTN is Home In book-->
+			<module ref="Book Determiner">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-do-item="PAGE_DO">
+						<rules>
+							<rule name="UsePressRunCode">
+								<criteria>
+						                        <conjunct type="or">
+										<criterion field="RUN_CODE" operator="contains" value="2"/>
+										<criterion field="RUN_CODE" operator="contains" value="3"/>
+										<criterion field="RUN_CODE" operator="contains" value="4"/>
+										<criterion field="RUN_CODE" operator="in" value="TBB,TBD,OTT,TBS,PTN"/>
+										<!--criterion field="RUN_CODE" operator="in" value="TBB,OTT,TBS,CCN,CCB,CCS,CNC,PTN,ART,BKS"/-->
+						                        </conjunct>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+
+					<object-name>PAGE_DO</object-name>
+					<remove-attribute name="PUBLICATION_CODE"/>
+				</config>
+			</module>
+
+			<module ref="Reject European Editions for Non-European Publications">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-do-item="PAGE_DO">
+						<rules>
+							<rule name="RejectEuropeanEdition">
+								<criteria>
+						                        <conjunct type="and">
+										<criterion field="PUBLICATION_TITLE" operator="notin" value="DE,DQ,SE,SQ"/>
+										<criterion field="PUBLICATION_EDITION" operator="in" value="GC,BC,ZC,MC,EC,RC"/>
+						                        </conjunct>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+
+					<object-name>PAGE_DO</object-name>
+					<remove-attribute name="PUBLICATION_EDITION"/>
+				</config>
+			</module>
+
+			<!-- Publication code T2 and T5 are used by both Daily Telegraph Magazine and Sunday Telegraph Magazine, we need to determine Publicaiton Title by Press Run Code-->
+			<module ref="Daily Magazine Publication Determiner">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-do-item="PAGE_DO">
+						<rules>
+							<rule name="DailyMagazinePublication">
+								<criteria>
+						                        <conjunct type="and">
+										<criterion field="PUBLICATION_TITLE" operator="in" value="T2,T5"/>
+										<criterion field="RUN_CODE" operator="in" value="DTM,D2M,D3M,GGA,G2A,G3A,GGB,G2B,G3B,GGC,G2C,G3C"/>
+						                        </conjunct>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+
+					<object-name>PAGE_DO</object-name>
+					<modify-attribute name="PUBLICATION_TITLE">
+						<store-name>PUBLICATION_TITLE</store-name>
+						<rules>setdailymagtitle</rules>
+					</modify-attribute>
+					<modify-rule name="setdailymagtitle">
+            					<regex>[T][2,5]</regex>
+            					<replace-value>DTLM</replace-value>
+            				</modify-rule>					
+				</config>
+			</module>
+
+			<module ref="Sunday Magazine Publication Determiner">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-do-item="PAGE_DO">
+						<rules>
+							<rule name="SundayMagazinePublication">
+								<criteria>
+						                        <conjunct type="and">
+										<criterion field="PUBLICATION_TITLE" operator="in" value="T2,T5"/>
+										<criterion field="RUN_CODE" operator="in" value="STM,S2M,S3M,HHA,H2A,H3A,HHB,H2B,H3B,HHC,H2C,H3C,STU"/>
+						                        </conjunct>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+
+					<object-name>PAGE_DO</object-name>
+					<modify-attribute name="PUBLICATION_TITLE">
+						<store-name>PUBLICATION_TITLE</store-name>
+						<rules>setsundaymagtitle</rules>
+					</modify-attribute>
+					<modify-rule name="setsundaymagtitle">
+            					<regex>[T][2,5]</regex>
+            					<replace-value>STLM</replace-value>
+            				</modify-rule>					
+				</config>
+			</module>
+
+			<module ref="Edifice Cleaning">
+				<class>com.picdar.process2.Repository.DataObjectCleaner.DataObjectCleaner</class>
+				<config>
+					<object-name>PAGE_DO</object-name>
+					<check_against_editions>PAGE</check_against_editions>
+					<save_as_version_attribute>SAVE_AS_VERSION</save_as_version_attribute>
+					<run_page_mappings>true</run_page_mappings>
+				</config>
+			</module>
+
+			<module ref="Check Required Fields">
+				<class>com.picdar.process2.Repository.DataObjectCleaner.DataObjectCleaner</class>
+				<config>
+					<object-name>PAGE_DO</object-name>
+					<check_against_required>PAGE</check_against_required>
+					<required-attributes>PUBLICATION_TITLE,PUBLICATION_EDITION,PUBLICATION_PAGE,PUBLICATION_SECTION,PUBLICATION_BOOK_NAME</required-attributes>
+				</config>
+			</module>
+
+			<module ref="AssetMetadataExtractor">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetMetadataExtractor</class>
+				<config>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>PAGE_DO</dataobject></retrieve-data>
+					<store-data><dataobject>PAGE_DO</dataobject></store-data>
+					<allowed-types>PAGE</allowed-types>
+					<extract-primary-key>false</extract-primary-key>
+					<iptc-tag name="Contents">CONTENTS</iptc-tag>
+				</config>
+			</module>
+
+			<module ref="Transaction Start">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+				<config>
+					<restriction>no-index</restriction>
+				</config>
+			</module>
+
+			<module ref="DataObject Loader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<source-location>filesystem</source-location>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>false</match-by-primary-key>
+					<match-fields>PUBLICATION_TITLE,PUBLICATION_EDITION,PUBLICATION_DATE,PUBLICATION_PAGE,PUBLICATION_BOOK_NAME</match-fields>
+					<update-matched-records>false</update-matched-records>
+					<reject-unmatched-records>false</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<create-asset-versions>true</create-asset-versions>
+					<version-action>use_flag</version-action>
+					<version-action-flag>SAVE_AS_VERSION</version-action-flag>
+					<types-to-match>PAGE</types-to-match>
+					<create-asset-records>true</create-asset-records>
+					<object-name>PAGE_DO</object-name>
+					<store-data-object-properties>
+						<page>
+							<OVERRIDE_DATE_STAMPS>true</OVERRIDE_DATE_STAMPS>
+						</page>
+					</store-data-object-properties>
+				</config>
+			</module>
+
+			<module ref="Asset Set Loader">
+				<class>com.picdar.process2.Repository.AssetSetLoader.AssetSetLoader</class>
+				<config>
+					<mmte-store-assets>true</mmte-store-assets>
+					<AllowedDataObjectTypes>PAGE, PAGE_VERSION</AllowedDataObjectTypes>
+					<DontProcessNonexistentFiles>true</DontProcessNonexistentFiles>
+					<OnlyStoreAllowedTypes>true</OnlyStoreAllowedTypes>
+					<CreateNewCookie>true</CreateNewCookie>
+					<GenerateAssetProperties>true</GenerateAssetProperties>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>PAGE_DO</dataobject></retrieve-data>
+					<mmte-store-asset-set>%%value:asset-store-set%%</mmte-store-asset-set>
+					<map-production>true</map-production>
+					<source-location>filesystem</source-location>
+				</config>
+			</module>
+
+			<module ref="Transaction End">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+			
+			<module ref="Set owner">
+				<class>com.picdar.process2.Repository.Security.SetOwnershipAndPolicies</class>
+				<config>
+						<readName>PAGE_DO</readName>
+						<default>
+							<owner role="System"/>
+						</default>
+				</config>
+			</module>			
+
+			<module ref="Add audit table entry">
+				<class>com.picdar.process2.Repository.JDBCStatement.DataObjectJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<object-source>PAGE_DO</object-source>
+					<use-at>true</use-at>
+					<statement>insert into AUDIT_SMARTLOGIC (ASSET_ID, FILENAME, CREATION_STAMP) values ('@@read-from:__dataobject-key@@', '@@read-from:FIELD.FILENAME@@', cast(current_timestamp at time zone dbtimezone as date))</statement>
+					<statement>insert into DRIPFEED_INDEX_SMARTLOGIC (ASSET_ID, QUEUE_NAME) values ('@@read-from:__dataobject-key@@', 'MM_PAGE_INDEX')</statement>
+				</config>
+			</module>
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

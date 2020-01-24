@@ -1,0 +1,128 @@
+<media-mogul-configuration>
+	<config groupname="PublisherTemplate">
+		<modules>
+			<module ref="RecordSelector">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<batchsize>%%value:BATCH_SIZE%%</batchsize>
+					<datasource>%%value:datasource%%</datasource>
+
+					<table>USAGE</table>
+					<additional-table>WEB_EXTERNAL</additional-table>
+					<idfield>USAGE_ID</idfield>
+					<criteria>usage.usage_id = web_external.asset_id and usage.publication_date &lt;= SYSDATE and lower(usage.status) = 'pending' and usage.platform = 'web' and lower(web_external.status) = 'published'</criteria>
+				</config>
+			</module>
+
+			<!-- Read the assets. -->
+			<module ref="DataReader">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<do-store-name>metadataDO</do-store-name>
+					<datasource>default</datasource>
+
+					<!-- We are setting a field we want later, so there is no need to actually load any
+						of the asset information. -->
+					<load-emd>false</load-emd>
+					<fields_to_read>
+						<match_type name="usage">
+							<field>ASSET_ID</field>
+						</match_type>
+					</fields_to_read>
+				</config>
+			</module>
+
+			<!-- Set the lifecycle status for the asset to 'Archive'. -->
+			<module ref="MetaDataProcessor">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>metadataDO</object-name>
+					<add-attributes>
+						<add-attribute name="STATUS">published</add-attribute>
+					</add-attributes>
+				</config>
+			</module>
+
+			<!-- Start the transaction. -->
+			<module ref="TransactionStart">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+				<config />
+			</module>
+
+			<!-- Save the asset. -->
+			<module ref="DataObjectLoader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<object-name>metadataDO</object-name>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>true</match-by-primary-key>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>true</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<types-to-match>USAGE</types-to-match>
+				</config>
+			</module>
+
+			<!-- End the transaction. -->
+			<module ref="TransactionEnd">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config />
+			</module>
+
+			<!-- Add the assets to the Lucene index queues -->
+			<module ref="LuceneIndex">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>%%value:datasource%%</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>metadataDO</metadata-object-name>
+					<metadata-field-name>ASSET_ID</metadata-field-name>
+					<indextables>picture,story,media,composite,document</indextables>
+					<batchsize>10</batchsize>
+					<indexer-action>index</indexer-action>
+					<use-index-manager-for-batch>true</use-index-manager-for-batch>
+				</config>
+			</module>
+
+			<!-- Add the assets to the NLT2 index queues -->
+			<module ref="NLT2Index">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>NLT2EnrichmentIndexManager</index-manager-resource>
+					<datasource>%%value:datasource%%</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>metadataDO</metadata-object-name>
+					<metadata-field-name>ASSET_ID</metadata-field-name>
+					<indextables>picture,story,media,composite</indextables>
+					<batchsize>10</batchsize>
+					<indexer-action>index</indexer-action>
+					<use-index-manager-for-batch>true</use-index-manager-for-batch>
+				</config>
+			</module>
+
+			<module ref="LogArchiveMISEvent">
+				<class>com.picdar.process2.System.MISProcessLogger</class>
+				<config>
+					<eventname>
+						<success>Archive asset</success>
+						<failure>do_not_log</failure>
+					</eventname>
+					<priority>
+						<success>debug</success>
+						<failure>do_not_log</failure>
+					</priority>
+					<eventtype>Lifecycle</eventtype>
+					<eventowner>%_PROCESS_CLASS_%</eventowner>
+
+					<property>Object ID</property>
+					<use-itemid-as-objectid>true</use-itemid-as-objectid>
+				</config>
+			</module>
+
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

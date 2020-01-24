@@ -1,0 +1,250 @@
+<media-mogul-configuration>
+	<config groupname="StoryLoaderTemplate">
+		<modules>
+			<module ref="QueueChecker">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>%%value:queue-name%%.%%value:feed-name%%</queue-name>
+					<item-location>package</item-location>
+					<limit>100</limit>
+					<batch-size>1</batch-size>
+					<store-data><props>QUEUE_INFO</props></store-data>
+					<fail-rejected>yes</fail-rejected>
+				</config>
+			</module>
+			<module ref="Packager">
+				<class>com.picdar.process2.Acquisition.Packager.Packager</class>
+				<config>
+					<metadata-store-name>fileDO</metadata-store-name>
+					<metadata-default-datasource>default</metadata-default-datasource>
+					<metadata-default-tablename>STORY</metadata-default-tablename>
+					<check-queue-retry-limit>true</check-queue-retry-limit>
+					<package-metadata>
+						<property-store name="QUEUE_INFO">
+							<map propfield="FEED_NAME" dofield="NOTES,FEED_NAME"/>
+                            <map propfield="FTP_HOST" dofield="NOTES"/>
+                            <map propfield="FTP_USERNAME" dofield="NOTES"/>
+                            <map propfield="FTP_ROOT" dofield="NOTES"/>
+						</property-store>
+						<filename-fields>FILE_NAME,NOTES</filename-fields>
+						<filepath-fields>FILE_PATH,NOTES</filepath-fields>
+					</package-metadata>
+					<item-location>filesystem</item-location>
+					<text-report>true</text-report>
+					<loaded-directory>%%value:loadedDir%%</loaded-directory>
+					<rejected-directory>%%value:rejectsDir%%</rejected-directory>
+                    <partially-rejected-directory>%%value:partialRejectsDir%%</partially-rejected-directory>
+                    <move-package>true</move-package>
+                    <delete-on-success>false</delete-on-success>
+					<reject-condition>all</reject-condition>
+					<descend>false</descend>
+					<ignored-items-store>ignored-items</ignored-items-store>
+					<rejected_items-store>rejected-items</rejected_items-store>
+					<successful-items-store>successful-items</successful-items-store>
+					<move-type>normal</move-type>
+					<ignoreZeroLength>true</ignoreZeroLength>
+					<direxcludefilter>.*</direxcludefilter>
+					<dirincludefilter></dirincludefilter>
+					<fileexcludefilter>.*</fileexcludefilter>
+					<fileincludefilter></fileincludefilter>
+				</config>
+			</module>
+			
+			<module ref="FileReader">
+				<class>com.picdar.process2.Acquisition.FileReader.ProcessItemFileReader</class>
+				<config>
+					<use-key>true</use-key>
+					<load-format>String</load-format>
+					<store-name>metadataXML</store-name>
+				</config>
+			</module>
+			
+			<module ref="Move Filename to Process Item">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<data-processors>
+						<processor ref="FILE_NAME" class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>fileDO</source-do>
+								<source-attr>FILE_NAME</source-attr>
+								<destination>filename</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+	
+			<module ref="Move Filepath to Process Item">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<data-processors>
+						<processor ref="FILE_PATH" class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>fileDO</source-do>
+								<source-attr>FILE_PATH</source-attr>
+								<destination>filepath</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+
+			<module ref="Move Feedname to Process Item">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<data-processors>
+						<processor ref="FEED_NAME" class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>fileDO</source-do>
+								<source-attr>FEED_NAME</source-attr>
+								<destination>feedname</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+
+			<module ref="Move Notes to Process Item">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<data-processors>
+						<processor ref="NOTES" class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>fileDO</source-do>
+								<source-attr>NOTES</source-attr>
+								<destination>notes</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+
+            <module ref="Extract the content category">
+<class>com.picdar.process2.Processing.XMLXPathSelector.XMLXPathSelector</class>
+<config>
+<xpath>/NewsML/NewsItem/NewsComponent/DescriptiveMetadata/Property[@FormalName='Category']/@Value</xpath>
+<read-name>metadataXML</read-name>
+<store-name>categoryCode</store-name>
+<mode>VALUE</mode>
+<action-if-not-found>ignore</action-if-not-found>
+</config>
+</module>
+
+            <module ref="Extract the content body">
+<class>com.picdar.process2.Processing.XMLXPathSelector.XMLXPathSelector</class>
+<config><xpath>/NewsML/NewsItem/NewsComponent/NewsComponent/ContentItem/DataContent/nitf/body/body.content/pre</xpath>
+<read-name>metadataXML</read-name>
+<store-name>unformattedStory</store-name>
+<mode>VALUE</mode>
+<action-if-not-found>ignore</action-if-not-found>
+</config>
+</module>
+
+<module ref="Format the Body of the Story">
+<class>
+com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor
+</class>
+<config>
+<script-manager>ScriptManager</script-manager>
+<script-name>FormatStory</script-name>
+<script-properties>
+<source-string>unformattedStory</source-string>
+<category>categoryCode</category>
+<result-store>formattedStory</result-store>
+</script-properties>
+</config>
+</module>
+
+            <module ref="Transforms Asset Metadata">
+                <class>com.picdar.process2.Processing.XMLTransformer.XMLTransformer</class>
+                <config>
+                    <transform name="%%value:stylesheet%%">
+                        <readname>metadataXML</readname>
+                        <storename>metadataDOA</storename>
+                        <process-params>filename,filepath,feedname,notes,formattedStory</process-params>
+                    </transform>
+                    <failureiscritical>true</failureiscritical>
+                </config>
+            </module>
+            <module ref="Converts to dataobject">
+                <class>com.picdar.process2.Repository.MetadataConverter.MetaDataConverter</class>
+                <config>
+                    <object-name>metadataDOA</object-name>
+                    <store-name>metadataDO</store-name>
+                    <filename-store-if-false-key>metadataXMLfile</filename-store-if-false-key>
+                    <store-as-dataobject>false</store-as-dataobject>
+                </config>
+            </module>
+            
+<module ref="Check incoming">
+<class>
+com.picdar.process2.Testing.DataInspector.DataInspector
+</class>
+<config>
+<message>Log the the unformatted story</message>
+<inspect>metadataXML</inspect>
+<inspect>unformattedStory</inspect>
+<inspect>formattedStory</inspect>
+<inspect>categoryCode</inspect>
+<inspect>metadataDO</inspect>
+</config>
+</module>
+            
+
+            <module ref="Transaction Start">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+				<config/>
+			</module>
+			
+            <module ref="DataObject Loader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<create-asset-records>true</create-asset-records>
+					<source-location>filesystem</source-location>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>true</match-by-primary-key>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>false</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<object-name>metadataDO</object-name>
+<store-data-object-properties>
+<story>
+<OVERRIDE_DATE_STAMPS>true</OVERRIDE_DATE_STAMPS>
+</story>
+</store-data-object-properties>
+				</config>
+			</module>
+
+			<module ref="AssetSetLoader">
+				<class>com.picdar.process2.Repository.AssetSetLoader.AssetSetLoader</class>
+				<config>
+					<mmte-store-assets>true</mmte-store-assets>
+					<AllowedDataObjectTypes>STORY</AllowedDataObjectTypes>
+					<CreateNewCookie>true</CreateNewCookie>
+					<GenerateAssetProperties>true</GenerateAssetProperties>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><metadata>metadataXML</metadata><dataobject>metadataDO</dataobject></retrieve-data>
+					<mmte-store-asset-set>Document</mmte-store-asset-set>
+					<source-location>filesystem</source-location>
+				</config>
+			</module>
+						
+			<module ref="Transaction End">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+
+			<module ref="Set PA job number">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>update story s1 set s1.job_number=(select 'PA'||substr(min(s2.asset_id),13) from story s2 where s1.story_name=s2.story_name and s2.creation_stamp>s1.creation_stamp-1) where s1.feed_name='PA' and s1.asset_id='@@read-from:metadataDO:_KEY_@@' and s1.job_number is null</statement>
+					<use-at>true</use-at>
+				</config>
+			</module>
+			
+%%template:ApplyLobbyTemplate%%
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

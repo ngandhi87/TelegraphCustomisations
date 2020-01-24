@@ -1,0 +1,76 @@
+<media-mogul-configuration>
+	<config groupname="UsageDeleterTemplate">
+		<modules>
+			<module ref="Put the usages that will be deleted in temp table">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class> 
+				<config>
+					<datasource>default</datasource> 
+
+					<!-- put the usages that will be deleted in temp table with affected asset_id and process name -->
+					<statement>
+						INSERT INTO DELETED_USAGES (PROCESS_NAME, ASSET_ID, USAGE_ID) 
+						SELECT '%%value:NAME%%', u.ASSET_ID, u.USAGE_ID 
+						FROM USAGE u, ASSET a, PICTURE p  
+						WHERE a.ASSET_ID = u.ASSET_ID 
+							AND p.ASSET_ID = u.ASSET_ID
+							AND UPPER(a.lifecycle_status) IN ('CREATED','FEED','PARKED','ARCHIVE','DELETED')
+							AND u.UPDATE_STAMP &lt; cast(current_timestamp at time zone dbtimezone as date) - %%value:DAYS_OLD:30%%
+							AND %%value:criteria%%
+							AND ROWNUM &lt;= %%value:LIMIT:1000%%
+					</statement>
+
+				</config>
+			</module>
+
+			<module ref="Delete the usages">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class> 
+				<config>
+					<datasource>default</datasource> 
+
+					<!-- delete usage EMD -->
+					<statement>
+						DELETE FROM DTI_USAGE WHERE ASSET_ID IN (SELECT USAGE_ID FROM DELETED_USAGES WHERE PROCESS_NAME = '%%value:NAME%%')
+					</statement>
+					<statement>
+						DELETE FROM WEB_EXTERNAL WHERE ASSET_ID IN (SELECT USAGE_ID FROM DELETED_USAGES WHERE PROCESS_NAME = '%%value:NAME%%')
+					</statement>
+
+					<!-- delete the usages -->
+					<statement>
+						DELETE FROM USAGE WHERE USAGE_ID IN (SELECT USAGE_ID FROM DELETED_USAGES WHERE PROCESS_NAME = '%%value:NAME%%')
+					</statement>
+				</config>
+			</module>
+
+			<module ref="Put affected assets into index queues">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					
+					<!-- put affected asset into index queue -->
+					<statement>					
+						insert into chp_index_queue (creation_stamp, update_stamp, queue_name, status, item_key, index_id, priority)
+						select cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date),
+							'MM_INDEX_QUEUE', 'PENDING', asset_id, chp_index_queue_seq.nextval, 30 
+							from DELETED_USAGES 
+							where PROCESS_NAME = '%%value:NAME%%'
+					</statement>
+
+				</config>
+			</module>
+			
+			<module ref="Clear the temp table">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					
+					<!-- clear the temp table -->
+					<statement>
+						DELETE FROM DELETED_USAGES WHERE PROCESS_NAME = '%%value:NAME%%'
+					</statement>
+				</config>
+			</module>
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

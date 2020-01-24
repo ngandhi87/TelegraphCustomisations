@@ -1,0 +1,247 @@
+<media-mogul-configuration>
+        <config groupname="ProcMigration-full">
+		<modules>
+			<module ref="Selects records for transfer from source location">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<datasource>classic-lib</datasource>
+
+					<table>photorecord</table>
+					<idfield>_urn</idfield>
+
+ <naCriteria>(and (ge [photorecord]date_created %%value:yearstart%%0101)(lt [photorecord]date_created %%value:yearstop%%0101))</naCriteria> 
+
+					<limit>0</limit>
+
+					<batchsize>%%value:batchsize:1000%%</batchsize>
+					<action_when_no_match>0</action_when_no_match>
+					<dateformat>ddMMyyyy</dateformat>
+					<defaultDate>22022005</defaultDate>
+<timestampSource>ClassicDataManagerLib</timestampSource>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.NamedAccess.RecSelDataSourceNA</datasource_classname>
+
+				</config>
+			</module>
+			<module ref="Reads the metadata in from source location">
+				<class>com.picdar.process2.Repository.DataReader.NamedAccess.DataReaderNA</class>
+				<config>
+			        <DataManagerResource>ClassicDataManagerLib</DataManagerResource>
+					<SearchManagerResource>ClassicSearchManagerLib</SearchManagerResource>
+
+					<datasource>classic-lib</datasource>
+<getPublicationRecords>true</getPublicationRecords>
+                    <do-store-name>SOURCE_RECORD_DO</do-store-name>
+                    <xml-store-name>SOURCE_RECORD_XML</xml-store-name>
+<add-field-info>false</add-field-info>
+				</config>
+			</module>
+
+                        <module ref="Adds routing information">
+                                <class>com.picdar.process2.Processing.TagNRoute.GetRoutingInfo</class>
+                                <config>
+                                        <DataSource>classic-lib</DataSource>
+                                        <pk-read-name>PRIMARY_KEY</pk-read-name>
+                                        <do-store-name>TARGET_RECORD_DO</do-store-name>
+                                        <hierarchy-delim>$</hierarchy-delim>
+                                        <not-allowed-regex>/</not-allowed-regex>
+                                        <do-routing-attribute-name>__ROUTING_INFO_LIST</do-routing-attribute-name>
+                                        <allowed-types>PICTURE</allowed-types>
+                                        <uses-routing-info-cache>true</uses-routing-info-cache>
+                                        <resets-cache-after-every-iteration>false</resets-cache-after-every-iteration>
+                                </config>
+                        </module>
+
+			<module ref="Converts to target xml format">
+				<class>com.picdar.process2.Processing.XMLTransformer.XMLTransformer</class>
+				<config>
+					<XMLManagerResource>XMLManager</XMLManagerResource>
+					<failureiscritical>true</failureiscritical>
+					<!-- dump-xml>true</dump-xml -->
+                                        <!-- dump-xml-path>/var/tmp/dump</dump-xml-path-->
+					<transform name="TelegraphLibraryMigration">
+
+						<readname>SOURCE_RECORD_XML</readname>
+						<storename>TARGET_RECORD_XML</storename>
+					</transform>
+				</config>
+			</module>
+
+			<module ref="Transforms into target data objects">
+				<class>com.picdar.process2.Repository.MetadataConverter.MetaDataConverter</class>
+
+				<config>
+					<XMLIngestionManagerResource>XMLIngestionManager</XMLIngestionManagerResource>
+					<object-name>TARGET_RECORD_XML</object-name>
+					<store-name>TARGET_RECORD_DO</store-name>
+				</config>
+			</module>
+
+
+			<module ref="Starts transaction">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+				<config>
+					<TransactionManager>TransactionManager</TransactionManager>
+				</config>
+			</module>
+
+			<module ref="Saves metadata in target location">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+      				<object-name>TARGET_RECORD_DO</object-name>
+					<TransactionManager>TransactionManager</TransactionManager>
+					<DataManager>DataManager</DataManager>
+					<AssetAccess>AssetAccess</AssetAccess>
+
+					<AssetMetadataManager>AssetMetadataManager</AssetMetadataManager>
+					<LinkageManager>LinkageManager</LinkageManager>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>true</match-by-primary-key>
+					<match-fields/>
+					<reject-matched-records>false</reject-matched-records>
+
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>false</reject-unmatched-records>
+					<create-asset-records>false</create-asset-records>
+					<create-asset-versions>false</create-asset-versions>
+					<version-action/>
+					<metadata-types>picture</metadata-types>
+
+					<child-records-to-delete>NOTICE</child-records-to-delete>
+					<store-data-object-properties>
+						<picture>
+							<UPDATE_LISTS>false</UPDATE_LISTS>
+							<THROW_UPDATE_LIST_ERRORS>false</THROW_UPDATE_LIST_ERRORS>
+						</picture>
+					</store-data-object-properties>
+
+				</config>
+			</module>
+			<module ref="Commits transaction">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config>
+					<TransactionManager>TransactionManager</TransactionManager>
+				</config>
+			</module>
+<!--
+			<module ref="SecurityLinker">
+				<class>com.picdar.process2.Repository.AssetLinker.AssetCollectionLinker</class>
+				<config>
+					<user-name>Administrator</user-name>
+					<retrieve-data><dataobject>TARGET_RECORD_DO</dataobject></retrieve-data>
+					<collection-manager>CategoryCollectionManager</collection-manager>
+
+					<create-collection-node>false</create-collection-node>
+					<default-collection-node>/Picture Migration/Library</default-collection-node>
+					<match-first-found>true</match-first-found>
+                                        <allowed-types>PICTURE</allowed-types>
+				</config>
+
+			</module>
+-->
+<!--
+			<module ref="Unlink from all categories">
+				<class>com.picdar.process2.Repository.AssetLinker.AssetAllCollectionUnlinker</class>
+				<config>
+					<user-name>Administrator</user-name>
+					<collection-manager>CategoryCollectionManager</collection-manager>
+                                        <allowed-types>PICTURE</allowed-types>
+                                        <store-name>TARGET_RECORD_DO</store-name>
+				</config>
+			</module>
+-->
+
+<!--
+			<module ref="PackageLinkerMigrated">
+				<class>com.picdar.process2.Repository.AssetLinker.AssetCollectionLinker</class>
+				<config>
+					<user-name>Administrator</user-name>
+					<collection-manager>CategoryCollectionManager</collection-manager>
+
+					<create-collection-node>true</create-collection-node>
+					<default-collection-node/>
+					<match-first-found>true</match-first-found>
+                                        <retrieve-data>
+                                                <dataobject>TARGET_RECORD_DO</dataobject>
+                                        </retrieve-data>
+                                        <node-from-dataobject actions="prefix:/Picture Migration/Library/" collection-path-delim="$" field="__STATUS"/>
+				</config>
+			</module>
+-->
+<!--
+<module ref="Set _CONTRIBUTOR_SET flag to false, if contributor field is null">
+<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+<config>
+<script-name>MandatoryFieldsSet</script-name>
+<script-properties>
+<dataobject>TARGET_RECORD_DO</dataobject>
+<fields>_CONTRIBUTOR_LINKED_FLAG</fields>
+<mandatory-fieldname>_CONTRIBUTOR_SET</mandatory-fieldname>
+<store-dataobject>WARNINGS_DOA</store-dataobject>
+</script-properties>
+</config>
+</module>
+-->
+
+<!--
+                        <module ref="Create warnings object">
+                              <class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+                            <config>
+                                  <script-name>AddWarnings</script-name>
+                                  <script-properties>
+                                  <dataobject>TARGET_RECORD_DO</dataobject>
+                                  <store-dataobject>WARNINGS_DOA</store-dataobject>
+                                  </script-properties>
+                            </config>
+                        </module>
+<module ref="DataObjectLoader_warnings">
+<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+<config>
+<ignore-item-not-present>true</ignore-item-not-present>
+<create-asset-records>true</create-asset-records>
+<source-location>filesystem</source-location>
+<match-existing-records>false</match-existing-records>
+<object-name>WARNINGS_DOA</object-name>
+</config>
+</module>
+-->
+
+                        <module ref="Update object into purpose build audit table in case record exists, silen error otherwise">
+                                <class>com.picdar.process2.Repository.JDBCStatement.DataObjectJDBCStatement</class>
+                                <config>
+
+                                        <datasource>default</datasource>
+                                        <object-source>SOURCE_RECORD_DO</object-source>
+                                        <use-at>true</use-at>
+                                        <statement>update audt_libphrec set time_stamp=sysdate, batchid = '%%value:batchid%%' where eurn = '@@read-from:FIELD._xurn@@' </statement> 
+                                </config>
+                        </module>
+
+                        <module ref="Update object in purpose build audit table, in case record does not exist">
+                                <class>com.picdar.process2.Repository.JDBCStatement.DataObjectJDBCStatement</class>
+                                <config>
+                                        <datasource>default</datasource>
+                                        <object-source>SOURCE_RECORD_DO</object-source>
+                                        <use-at>true</use-at>
+                                        <statement>insert into audt_libphrec ( eUrn, batchid) select '@@read-from:FIELD._xurn@@', '%%value:batchid%%' from dual where not exists ( select 1 from audt_libphrec where eurn = '@@read-from:FIELD._xurn@@' ) </statement> 
+                                </config>
+                        </module>
+
+		</modules>
+		<schedule>
+			<scheduletype>manual</scheduletype>
+			<runinterval>
+				<count>5</count>
+
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>22</hours>
+
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

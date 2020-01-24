@@ -1,0 +1,106 @@
+<media-mogul-configuration>
+	<config groupname="FolderManagementTemplate">
+		<modules>
+		
+			<module ref="Create process item">
+				<class>com.picdar.process2.Acquisition.ProcessItemCreator.ProcessItemCreator</class>
+				<config>
+					<name>%%value:folder_path%%</name>
+				</config>
+			</module>
+			
+			<module ref="Find node ID">
+				<class>com.picdar.process2.Repository.HierarchyProcessor.HierarchyProcessor</class>
+				<config>
+					<collection-manager>%%value:collection_manager%%</collection-manager>
+					<user-name>Administrator</user-name>
+					<action>get_id</action>
+					<read-name>__KEY__</read-name>
+					<store-name>FOLDER_ID</store-name>
+				</config>
+			</module>
+			
+			<module ref="Find the nodes to be deleted">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<datasource>default</datasource>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
+					<batchsize>%%value:BATCH_SIZE%%</batchsize>
+
+					<override-statement><![CDATA[
+					with inBranch as
+						(
+						select node_id, key, protected, time_stamp, parent_id
+						from %%value:hierarchy_table%%
+						start with node_id = '@folderid@'
+						connect by parent_id = prior node_id
+						)
+						
+					select node_id
+					from inBranch
+					where
+					-------------------------------
+					-- not updated in so many days
+					-------------------------------
+					TIME_STAMP < (SYSDATE - %%value:not_updated_in_days%%)
+					-----------------------
+					-- is folder protected
+					-----------------------
+					and protected in (0, %%value:override_protection%%)
+					--------------
+					-- leaf nodes
+					--------------
+					and node_id not in
+						(
+						select distinct parent_id
+						from inBranch
+						where parent_id is not null
+						)
+					------------------------------
+					-- fewer then specified limit
+					------------------------------
+					and node_id in
+						(
+						select node_id
+						from
+							(
+							select count(*) as asset_count, node_id
+							from asset_category
+							group by node_id
+							)
+						where asset_count <= %%value:max_num_assets%%
+						union
+						---------
+						-- empty
+						---------
+						select node_id
+						from inBranch
+						where node_id not in (select node_id from asset_category)
+						)
+					order by node_id
+					]]></override-statement>
+					<criteria>asset_id = '@folderid@'</criteria>
+					<substitute from="@folderid@">
+						<read-name>FOLDER_ID</read-name>
+						<continue-if-no-object>yes</continue-if-no-object>
+					</substitute>
+					<limit>0</limit>
+					<store-name>DEL_IDS</store-name>
+				</config>
+			</module>
+
+			<module ref="Delete the nodes">
+				<class>com.picdar.process2.Repository.HierarchyProcessor.HierarchyProcessor</class>
+				<config>
+					<collection-manager>%%value:collection_manager%%</collection-manager>
+					<user-name>Administrator</user-name>
+					<action>delete_by_id</action>
+					<read-name>DEL_IDS</read-name>
+					<dry-run>%%value:dry_run%%</dry-run>
+				</config>
+			</module>
+		</modules>
+		
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

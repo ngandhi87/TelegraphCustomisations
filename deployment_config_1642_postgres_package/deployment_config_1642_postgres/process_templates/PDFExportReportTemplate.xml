@@ -1,0 +1,108 @@
+<media-mogul-configuration>
+	<config groupname="PDFExportReportTemplate"> 
+		<modules>
+			<module ref="Generate the summary">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>
+						<![CDATA[
+							select tmp3.asset_id as "1_ASSET_ID",
+								tmp3.publication_title as "2_TITLE", 
+								to_char(tmp3.publication_date, 'DD/MM/YYYY') as "3_PUBLICATION_DATE",
+								tmp3.publication_book_name as "4_BOOK_NAME", 
+								tmp3.publication_page as "5_PAGE_NUMBER", 
+								tmp3.publication_edition as "6_EDITION", 
+								nvl(ape.filename, ' ') as "7_EXPORT_FILENAME",
+								nvl(to_char(ape.timestamp, 'DD/MM/YYYY HH24:MI:SS'), ' ') as "8_EXPORT_FILE_TIMESTAMP"
+							from
+								(
+								select max(tmp2.asset_id) as "ASSET_ID", tmp2.publication_title, tmp2.publication_date, tmp2.publication_book_name, tmp2.publication_page, tmp2.publication_edition, tmp2.edition_id, tmp2.edition_lvl, tmp2.max_lvl 
+								from 
+									( 
+									select tmp1.*, max(edition_lvl) over (partition by publication_date, publication_page) as max_lvl 
+									from 
+										( 
+										select p.ASSET_ID, p.publication_title, p.publication_date, p.publication_book_name, p.PUBLICATION_PAGE, p.PUBLICATION_EDITION, ei.EDITION_ID, ed1.edition_lvl
+										from page p, edition_instance ei, asset_info ai,
+											(
+											select ed.edition_id, ed.name, level edition_lvl
+											from edition ed
+											where ed.publication_name = '%%value:PUBLICATION_TITLE%%'
+												and ed.name in (%%value:PUBLICATION_EDITIONS%%)
+											start with (ed.parent_id is null or ed.parent_id = 0) 
+											connect by prior ed.edition_id = ed.parent_id
+											) ed1
+										where p.publication_date >= to_date('%%value:PUBLICATION_START_DATE%% 00:00:00', 'DD-MM-YYYY HH24:MI:SS') 
+											and p.publication_date <= to_date('%%value:PUBLICATION_END_DATE%% 23:59:59', 'DD-MM-YYYY HH24:MI:SS') 
+											and p.publication_title = '%%value:PUBLICATION_TITLE%%' 
+											and p.PUBLICATION_BOOK_NAME = '%%value:PUBLICATION_BOOK%%' 
+											and p.EDITION_INSTANCE_ID = ei.EDITION_INSTANCE_ID
+											and ei.edition_id = ed1.EDITION_ID
+											and p.asset_id = ai.asset_id
+											and p.publication_edition in (%%value:PUBLICATION_EDITIONS%%) 
+										) tmp1 
+									) tmp2 
+								where tmp2.edition_lvl = tmp2.max_lvl
+								group by tmp2.publication_title, tmp2.publication_date, tmp2.publication_book_name, tmp2.publication_page, tmp2.publication_edition, tmp2.edition_id, tmp2.edition_lvl, tmp2.max_lvl 
+								) tmp3
+								left join audit_pdf_export ape on tmp3.asset_id = ape.asset_id and ape.export_location = '%%value:EXPORT_LOCATION%%' and ape.LATEST_EXPORT = 'Y'
+							order by tmp3.publication_date, cast(regexp_replace(tmp3.PUBLICATION_PAGE, '[^0-9]+', '') as number) 
+							]]>	
+					</statement>
+					<store_name>PDF_EXPORT_SUMMARY</store_name>
+				</config>
+			</module>
+
+			<module ref="Prepare Export Summary Email Content">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<script-name>PreparePDFExportSummary</script-name>
+					<script-properties>
+						<export-summary-object>PDF_EXPORT_SUMMARY</export-summary-object>
+						<export-filename-field>7_EXPORT_FILENAME</export-filename-field>
+						<export-file-timestamp-field>8_EXPORT_FILE_TIMESTAMP</export-file-timestamp-field>
+						<publication-title>%%value:PUBLICATION_TITLE%%</publication-title>
+						<publication-book>%%value:PUBLICATION_BOOK%%</publication-book>
+						<publication-start-date>%%value:PUBLICATION_START_DATE%%</publication-start-date>
+						<publication-end-date>%%value:PUBLICATION_END_DATE%%</publication-end-date>
+						<export-location>%%value:EXPORT_LOCATION%%</export-location>
+						<email-content-object>EMAIL_CONTENT</email-content-object>
+					</script-properties>
+				</config>
+			</module>
+<!--
+			<module ref="Data Inspector">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+					<inspect>EMAIL_CONTENT</inspect>
+				</config>
+			</module>
+-->
+			<module ref="GenerateCSV">
+				<class>com.picdar.process2.Processing.GenerateCSV.GenerateCSV</class>
+				<config>
+					<store_name>PDF_EXPORT_SUMMARY</store_name>
+					<csv_store_name>PDF_EXPORT_SUMMARY_CSV</csv_store_name>
+					<escape_type>quotes</escape_type>
+				</config>
+			</module>
+
+			<module ref="Send Email with CSV report as attachment">
+				<class>com.picdar.process2.Delivery.EmailSender.SimpleMailer</class>
+				<config>
+					<MailManager>MailManager</MailManager>
+					<to-email>%%value:RECIPIENT_EMAIL_ADDRESS%%</to-email>
+					<from-email>%%value:SENDER_EMAIL_ADDRESS%%</from-email>
+					<subject>PDF Export Summary Report</subject>
+					<email-source-obj>EMAIL_CONTENT</email-source-obj>
+					<attachment-source-obj>PDF_EXPORT_SUMMARY_CSV</attachment-source-obj>
+					<attachment-name>PDF_Export_%%value:PUBLICATION_TITLE%%_%%value:PUBLICATION_BOOK%%_%%value:PUBLICATION_START_DATE%%_%%value:PUBLICATION_END_DATE%%.csv</attachment-name>
+					<msg-limit>10000000</msg-limit>
+				</config>
+			</module>
+
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

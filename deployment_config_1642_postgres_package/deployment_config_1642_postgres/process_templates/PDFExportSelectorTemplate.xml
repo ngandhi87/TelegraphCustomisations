@@ -1,0 +1,68 @@
+<media-mogul-configuration>
+	<config groupname="PDFExportSelectorTemplate"> 
+		<modules>
+			<module ref="PageSelector">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<batchsize>100</batchsize>
+					<action_when_no_match>4</action_when_no_match>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
+					<datasource>default</datasource>
+					<table>ASSET</table>
+					<idfield>ASSET_ID</idfield>
+					<additional-table/>
+					<jdbcCriteria>
+						<![CDATA[
+							asset_id in
+							(
+							select tmp3.asset_id
+							from
+								(
+								select max(tmp2.asset_id) as "ASSET_ID", tmp2.publication_date, tmp2.publication_page, tmp2.publication_edition, tmp2.filename, tmp2.edition_id, tmp2.edition_lvl, tmp2.max_lvl 
+								from 
+									( 
+									select tmp1.*, max(edition_lvl) over (partition by publication_date, publication_page) as max_lvl 
+									from 
+										( 
+										select p.ASSET_ID, p.publication_date, p.PUBLICATION_PAGE, p.PUBLICATION_EDITION, p.FILENAME, ei.EDITION_ID, ed1.edition_lvl
+										from page p, edition_instance ei, asset_info ai,
+											(
+											select ed.edition_id, ed.name, level edition_lvl
+											from edition ed
+											where ed.publication_name = '%%value:PUBLICATION_TITLE%%'
+												and ed.name in (%%value:PUBLICATION_EDITIONS%%)
+											start with (ed.parent_id is null or ed.parent_id = 0) 
+											connect by prior ed.edition_id = ed.parent_id
+											) ed1
+										where p.publication_date >= to_date('%%value:PUBLICATION_START_DATE%% 00:00:00', 'DD-MM-YYYY HH24:MI:SS') 
+											and p.publication_date <= to_date('%%value:PUBLICATION_END_DATE%% 23:59:59', 'DD-MM-YYYY HH24:MI:SS') 
+											and p.publication_title = '%%value:PUBLICATION_TITLE%%' 
+											and p.PUBLICATION_BOOK_NAME = '%%value:PUBLICATION_BOOK%%' 
+											and p.EDITION_INSTANCE_ID = ei.EDITION_INSTANCE_ID
+											and ei.edition_id = ed1.EDITION_ID
+											and p.asset_id = ai.asset_id
+											and p.publication_edition in (%%value:PUBLICATION_EDITIONS%%) 
+										) tmp1 
+									) tmp2 
+								where tmp2.edition_lvl = tmp2.max_lvl
+								group by tmp2.publication_date, tmp2.publication_page, tmp2.publication_edition, tmp2.filename, tmp2.edition_id, tmp2.edition_lvl, tmp2.max_lvl 
+								) tmp3
+							)]]>
+					</jdbcCriteria> 
+					<limit>0</limit>
+					<dateformat>ddMMyyyy</dateformat>
+					<defaultDate>22022005</defaultDate>
+				</config>
+			</module>
+
+			<module ref="QueueWriter">
+				<class>com.picdar.process2.Acquisition.QueueWriter.QueueWriter</class>
+				<config>
+					<queue-name>%%value:QUEUE_NAME%%</queue-name>
+				</config>
+			</module>
+
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

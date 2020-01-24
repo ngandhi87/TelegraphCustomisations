@@ -1,0 +1,28 @@
+<media-mogul-configuration>
+	<config groupname="FixContributorTemplate">
+		<modules>
+			<module ref="Select all folders">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<criteria>%%value:criteria%%</criteria>
+					<datasource>%%value:datasource%%</datasource>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
+					<dateformat>dd/MM/yyyy</dateformat>
+					<defaultDate>01/01/2012</defaultDate>
+					<idfield>ASSET_ID</idfield>
+					<table>%%value:asset_table%%</table>
+				</config>
+			</module>
+			<module ref="Read the record from CHP">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>%%value:datasource%%</datasource>
+					<do-store-name>%%value:metadataDO:IMAGE_DO%%</do-store-name>
+				</config>
+			</module>
+			
+			%%template:ApplyLobbyTemplate%%
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

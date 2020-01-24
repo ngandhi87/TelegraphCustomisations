@@ -1,0 +1,244 @@
+<media-mogul-configuration>
+	<config groupname="MediaFileLoader">
+		<modules>
+			<module ref="Queue Reader">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>%%value:queue-name%%</queue-name>
+					<item-location>package</item-location>
+					<limit>100</limit>
+					<batch-size>1</batch-size>
+					<store-data><info>ORIGINAL_ASSET_DATA_ID</info></store-data>
+				</config>
+			</module>
+
+			<module ref="Packager">
+				<class>com.picdar.process2.Acquisition.Packager.Packager</class>
+				<config>
+					<metadata-store-name>QueueDO</metadata-store-name>
+					<metadata-default-datasource>%%value:datasource%%</metadata-default-datasource>
+					<metadata-default-tablename>MEDIA</metadata-default-tablename>
+					<package-metadata>
+						<filename-fields>FILE_NAME</filename-fields>
+						<filepath-fields>FILE_PATH</filepath-fields>
+					</package-metadata>
+					<values-to-transfer>ORIGINAL_ASSET_DATA_ID</values-to-transfer>
+					<check-queue-retry-limit>true</check-queue-retry-limit>
+					<item-location>filesystem</item-location>
+					<text-report>false</text-report>
+					<loaded-directory>%%value:loadedDir%%</loaded-directory>
+					<rejected-directory>%%value:rejectsDir%%</rejected-directory>
+					<partially-rejected-directory>%%value:partialRejectsDir%%</partially-rejected-directory>
+					<move-package>true</move-package>
+					<delete-on-success>false</delete-on-success>
+					<reject-condition>all</reject-condition>
+					<descend>false</descend>
+					<ignored-items-store>ignored-items</ignored-items-store>
+					<rejected_items-store>rejected-items</rejected_items-store>
+					<successful-items-store>successful-items</successful-items-store>
+					<move-type>normal</move-type>
+					<ignoreZeroLength>true</ignoreZeroLength>
+					<direxcludefilter>.*</direxcludefilter>
+					<dirincludefilter></dirincludefilter>
+					<fileexcludefilter>.*</fileexcludefilter>
+					<fileincludefilter></fileincludefilter>
+
+					<!-- new config for grouping images to their associated metadata -->
+					<group-files>false</group-files>
+					<group-options>
+						<file storeas="_KEY_" />
+					</group-options>
+				</config>
+			</module>
+
+			<!-- Read the legacy id from the queue, by means of filename.  -->
+			<module ref="DataReaderOriginalAsset">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<allowed-locations>filesystem</allowed-locations>
+					<datasource>default</datasource>
+					<read-name>ORIGINAL_ASSET_DATA_ID</read-name>
+					<do-store-name>ORIGINAL_ASSET_DATA</do-store-name>
+				</config>
+			</module>
+			<!-- Clone the dataobject into QueueDO.  -->
+			<module ref="CloneDO">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>ORIGINAL_ASSET_DATA</object-name>
+					<metadata-processors>
+						<processor ref="CloneObject" class="com.picdar.process2.Processing.MetaDataProcessor.CloneDataObject">
+							<properties>
+								<target-object>QueueDO</target-object>
+								<copy-child-objects>true</copy-child-objects>
+								<exclude-fields>ASSET_CLASS,FILE_FORMAT,VIDEO_FORMAT,AUDIO_FORMAT,VIDEO_BITRATE,VIDEO_FRAMERATE,COLOURSPACE,WIDTH,HEIGHT,DURATION,AUDIO_SAMPLERATE,AUDIO_CHANNELS,AUDIO_BITRATE,LANGS,SUBTITLE_LANGS</exclude-fields>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+
+			<!-- Read the original job id from the name of the file. -->
+			<module ref="FilenameParser">
+				<class>com.picdar.process2.Processing.FilenameParser.FilenameParser</class>
+				<config>
+					<datasource>default</datasource>
+					<tablename>WORKFLOW_ITEM</tablename>
+					<store-data><dataobject>JOB_DATA</dataobject></store-data>
+					<fileelement offset="0" separator="_">
+						<fieldname index="0">JOB_ID</fieldname>
+						<fieldname index="1">ORIGINAL_ASSET_ID</fieldname>
+					</fileelement>
+					<validateFilenamePK>false</validateFilenamePK>
+				</config>
+			</module>
+
+			<!-- Carry on loading.  -->
+			<module ref="AssetMetadataExtractor">
+				<class>com.picdar.process2.Acquisition.AssetMetadata.AssetMetadataExtractor</class>
+				<config>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>QueueDO</dataobject></retrieve-data>
+					<store-data><dataobject>QueueDO</dataobject></store-data>
+					<allowed-types>MEDIA</allowed-types>
+					<extract-primary-key>false</extract-primary-key>
+					<!-- Needed for custom transform string in AssetSetLoader -->
+					<iptc-tag name="Property Category">PROPERTY_CATEGORY</iptc-tag>
+
+					%%value:iptc-mappings%%
+				</config>
+			</module>
+
+			<!-- Core load.  -->
+			<module ref="Transaction Start">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+				<config/>
+			</module>
+			<module ref="DataObject Loader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<create-asset-records>true</create-asset-records>
+					<source-location>filesystem</source-location>
+					<match-existing-records>false</match-existing-records>
+					<match-by-primary-key>false</match-by-primary-key>
+					<reject-unmatched-records>false</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<object-name>QueueDO</object-name>
+				</config>
+			</module>
+			<module ref="Asset Set Loader">
+				<class>com.picdar.process2.Repository.AssetSetLoader.AssetSetLoader</class>
+				<config>
+					<mmte-store-assets>true</mmte-store-assets>
+					<AllowedDataObjectTypes>MEDIA</AllowedDataObjectTypes>
+					<OnlyStoreAllowedTypes>true</OnlyStoreAllowedTypes>
+					<CreateNewCookie>true</CreateNewCookie>
+					<GenerateAssetProperties>true</GenerateAssetProperties>
+					<MMTE>%%value:mmte%%</MMTE>
+					<retrieve-data><dataobject>QueueDO</dataobject></retrieve-data>
+					<mmte-store-asset-set>%%value:asset-store-set%%</mmte-store-asset-set>
+					<field-for-override-transforms>PROPERTY_CATEGORY</field-for-override-transforms>
+					<mmte-store-asset-set-for type="Movie">
+						<store type="production">identity;</store>
+						<!--
+						<store type="thumbnail">normalise:maxdim=100;return:type=jpeg;</store>
+						<store type="stamp">normalise:maxdim=50;return:type=jpeg;</store>
+						-->
+					</mmte-store-asset-set-for>
+					<map-production>true</map-production>
+					<source-location>filesystem</source-location>
+				</config>
+			</module>
+			<module ref="Transaction End">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+
+			<!-- Clone the security on the asset - just owner for the time being.  -->
+			<module ref="Clone security">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<statement>update asset set lifecycle_status='CREATED',LIFECYCLE_STATUS_UPDATE=sysdate,owner_id=(select owner_id from asset where asset_id='@@read-from:ORIGINAL_ASSET_DATA:_KEY_@@') where asset_id='@@read-from:QueueDO:_KEY_@@'</statement>
+					<store_name>CLONE_SECURITY_RESULT</store_name>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>yes</add_to_process_item>
+				</config>
+			</module>
+
+			<!-- Link asset to workflow.  -->
+			<module ref="Link asset to workflow">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<statement>insert into WORKFLOW_ITEM_ASSET(WORKFLOW_ITEM_ASSET_ID,WORKFLOW_ITEM_ID,ASSET_ID,CREATION_STAMP,TIMESTAMP) select WORKFLOW_ITEM_ASSET_seq.nextval,'@@read-from:JOB_DATA:JOB_ID@@','@@read-from:QueueDO:_KEY_@@',sysdate,sysdate from dual</statement>
+					<store_name>LINK2WORKFLOW_RESULT</store_name>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>yes</add_to_process_item>
+				</config>
+			</module>
+
+			<!-- Link asset to source asset.  -->
+			<module ref="Link asset to source asset">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<statement>insert into LINKED_ASSET(LINK_ID,ASSET_ID,LINK_TO,CREATION_STAMP,TIMESTAMP,TYPE) select (('%%value:SYSTEMID%%MMGLLINK' || substr('000000000000' || LINKED_ASSET_seq.nextval, -12))), '@@read-from:QueueDO:_KEY_@@', '@@read-from:ORIGINAL_ASSET_DATA:_KEY_@@', sysdate, sysdate,'source' from dual</statement>
+					<store_name>LINK2SRC_RESULT</store_name>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>yes</add_to_process_item>
+				</config>
+			</module>
+
+			<!-- Change state of workflow item.  -->
+			<module ref="Change the state of the workflow item">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<statement>update WORKFLOW_ITEM set STATE_ID=(select node_id from WORKFLOW_HIERARCHY where key='%%value:COMPLETEDSTATE%%' and parent_id in (select node_id from WORKFLOW_HIERARCHY where key='%%value:WORKFLOWNAME%%')) where WORKFLOW_ITEM_ID='@@read-from:JOB_DATA:JOB_ID@@'</statement>
+					<store_name>CHANGESTATE_RESULT</store_name>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>yes</add_to_process_item>
+				</config>
+			</module>
+			
+			<!-- Reindex now  for security changes.  -->
+			<module ref="Re-index asset because of ownership changes">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>default</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>QueueDO</metadata-object-name>
+					<allowed-types>MEDIA</allowed-types>
+					<indextables>picture,story,media,composite,document</indextables>
+					<batchsize>10</batchsize>
+					<indexer-action>index</indexer-action>
+					<use-index-manager-for-batch>true</use-index-manager-for-batch>
+				</config>
+			</module>
+
+			<!-- Generate thumbnail/preview etc.  -->
+			<module ref="QueueWriterThumb">
+				<class>com.picdar.process2.Acquisition.QueueWriter.QueueWriter</class>
+				<config>
+					<queue-name>Media.ThumbnailGeneration</queue-name>
+					<store-data>QueueDO</store-data>
+				</config>
+			</module>
+			<module ref="QueueWriter">
+				<class>com.picdar.process2.Acquisition.QueueWriter.QueueWriter</class>
+				<config>
+					<queue-name>Media.LoresGeneration</queue-name>
+					<store-data>QueueDO</store-data>
+				</config>
+			</module>
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

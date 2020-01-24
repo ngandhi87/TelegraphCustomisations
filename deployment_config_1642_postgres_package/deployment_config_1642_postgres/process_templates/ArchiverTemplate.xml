@@ -1,0 +1,124 @@
+<media-mogul-configuration>
+	<config groupname="ArchiverTemplate">
+		<modules>
+			<!-- Find the IDs of assets that should be archived. -->
+			<!-- Lucene search head is currently not used.
+			<module ref="Select record for weeding">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.Lucene.RecSelDataSourceLucene</datasource_classname>
+					<batchsize>%%value:BATCH_SIZE%%</batchsize>
+
+					<saved_search_name>%%value:saved_search_name%%</saved_search_name>
+					<saved_search_manager>SavedSearchManager</saved_search_manager>
+				</config>
+			</module>
+			-->
+
+			<module ref="RecordSelector">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<batchsize>%%value:BATCH_SIZE%%</batchsize>
+					<datasource>%%value:datasource%%</datasource>
+					<table>ASSET</table>
+					<additional-table>%%value:additional-table%%</additional-table>
+					<idfield>ASSET_ID</idfield>
+					<!--
+					We want to select assets that match the following criteria:
+						- Has a lifecycle status of 'Created', 'Feed' or 'Parked'.
+						- Has at least one 'published' usage.
+					-->
+					<criteria>%%value:criteria%%</criteria>
+				</config>
+			</module>
+
+			<!-- Read the assets. -->
+			<module ref="DataReader">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<do-store-name>metadataDO</do-store-name>
+					<datasource>default</datasource>
+
+					<!-- We are setting a field we want later, so there is no need to actually load any
+						of the asset information. -->
+					<load-emd>false</load-emd>
+					<fields_to_read>
+						<match_type name="story">
+						</match_type>
+						<match_type name="picture">
+						</match_type>
+						<match_type name="media">
+						</match_type>
+						<match_type name="document">
+						</match_type>
+						<match_type name="page">
+						</match_type>
+						<match_type name="composite">
+						</match_type>
+					</fields_to_read>
+				</config>
+			</module>
+
+			<!-- Set the lifecycle status for the asset to 'Archive'. -->
+			<module ref="MetaDataProcessor">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>metadataDO</object-name>
+					<add-attributes>
+						<add-attribute name="LIFECYCLE_STATUS">Archive</add-attribute>
+						<add-attribute name="JUST_ENRICHED">true</add-attribute>
+					</add-attributes>
+				</config>
+			</module>
+
+			<!-- Start the transaction. -->
+			<module ref="TransactionStart">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+			</module>
+
+			<!-- Save the asset. -->
+			<module ref="DataObjectLoader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<object-name>metadataDO</object-name>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>true</match-by-primary-key>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>true</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<types-to-match>PICTURE,STORY,DOCUMENT,MEDIA,PAGE,COMPOSITE,EXTERNAL</types-to-match>
+				</config>
+			</module>
+
+			<!-- End the transaction. -->
+			<module ref="TransactionEnd">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config />
+			</module>
+
+			<module ref="LogArchiveMISEvent">
+				<class>com.picdar.process2.System.MISProcessLogger</class>
+				<config>
+					<eventname>
+						<success>Archive asset</success>
+						<failure>do_not_log</failure>
+					</eventname>
+					<priority>
+						<success>debug</success>
+						<failure>do_not_log</failure>
+					</priority>
+					<eventtype>Lifecycle</eventtype>
+					<eventowner>%_PROCESS_CLASS_%</eventowner>
+
+					<property>Object ID</property>
+					<use-itemid-as-objectid>true</use-itemid-as-objectid>
+				</config>
+			</module>
+
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

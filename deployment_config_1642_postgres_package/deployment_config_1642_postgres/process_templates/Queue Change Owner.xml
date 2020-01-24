@@ -1,0 +1,68 @@
+<media-mogul-configuration>
+	<config groupname="Queue Change Owner">
+		<modules>
+
+			<module ref="Find applicable records">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<criteria><![CDATA[
+asset_id in 
+(
+select asset_id 
+from picture 
+where creation_stamp <= cast(current_timestamp at time zone dbtimezone as date) - (%%value:DAYS_OLD%%)
+) 
+and asset.owner_id = (select role_id from mm_role where role_name = '%%value:OLDOWNER%%')
+]]></criteria>
+					<datasource>default</datasource>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
+					<idfield>ASSET_ID</idfield>
+					<table>asset</table>
+					<limit>0</limit>
+					<batchsize>1</batchsize>
+				</config>
+			</module>
+
+			<module ref="Read the record from CHP">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>CHP_DO</do-store-name>
+					<allows-deletions>true</allows-deletions>
+				</config>
+			</module>
+
+			<module ref="MetaDataProcessor">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<add-attributes>
+						<add-attribute name="OWNER">%%value:NEWOWNER%%</add-attribute>
+					</add-attributes>
+					<object-name>CHP_DO</object-name>
+				</config>
+			</module>
+
+			<!--
+			<module ref="Log the FeedResponse">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+				</config>
+			</module>
+			-->
+
+			<module ref="QueueWriter">
+				<class>com.picdar.process2.Acquisition.QueueWriter.QueueWriter</class>
+				<config>
+					<queue-name>Ownership Change</queue-name>
+					<store-data>CHP_DO</store-data>
+					<queue-item-key>ASSET_ID</queue-item-key>
+					<add-queue-item-info>OWNER</add-queue-item-info>
+					<additional-attributes>OWNER</additional-attributes>
+					<remove-process-items>false</remove-process-items>
+				</config>
+			</module>
+
+		</modules>
+        %%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

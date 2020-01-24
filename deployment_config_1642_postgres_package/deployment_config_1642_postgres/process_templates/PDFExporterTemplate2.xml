@@ -1,0 +1,105 @@
+<media-mogul-configuration>
+	<config groupname="PDFExporterTemplate"> 
+		<modules>
+			<module ref="QueueChecker">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>%%value:QUEUE_NAME%%</queue-name>
+					<item-location>database</item-location>
+					<limit>%%value:LIMIT%%</limit>
+					<batch-size>1</batch-size>
+					<fail-rejected>yes</fail-rejected>
+				</config>
+			</module>				
+
+			<module ref="Read the record from the CHP">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>FILE_DATA</do-store-name>
+					<DisplayChildRecordsAsXMLObj>true</DisplayChildRecordsAsXMLObj>						
+				</config>
+			</module>
+
+			<module ref="Read the asset from the CHP">
+				<class>com.picdar.process2.Repository.AssetSetReader.AssetSetReader</class>
+				<config>
+					<FieldManagerResource>FieldManager</FieldManagerResource>
+					<AssetAccessResource>AssetAccess</AssetAccessResource>
+					<DataManagerResource>DataManager</DataManagerResource>
+					<TransactionManagerResource>TransactionManager</TransactionManagerResource>
+					<AssetTypes>Production</AssetTypes>
+					<IncludeAssetProperties>false</IncludeAssetProperties>
+					<StoreAssetsName>ASSET_FILE</StoreAssetsName>
+					<MetaDataObjectName>FILE_DATA</MetaDataObjectName>
+					<StreamAssets>false</StreamAssets>
+					<AssetTypeTransform>false</AssetTypeTransform>
+					<action-on-missing-cookie>reject</action-on-missing-cookie>
+				</config>
+			</module>
+			
+			<!--
+			<module ref="Validate PDF file content exists">
+				<class>com.picdar.process2.Processing.ValidateDataObject.ValidateDataObject</class>
+				<config>
+					<object-name>ASSET_FILE</object-name>
+					<validate type="">
+						<work-list>
+							<check name="empty" type="empty" action="reject"></check>
+						</work-list>
+					</validate>
+				</config>
+			</module>
+			-->			
+<!--
+			<module ref="Test 1">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config/>
+			</module>
+-->
+			<module ref="Prepare PDF Export Filename">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<script-name>PreparePDFExportFilename</script-name>
+					<script-properties>
+						<dataobject>FILE_DATA</dataobject>
+						<output-field>EXPORT_FILENAME</output-field>
+						<filename-template>[PUBLICATION_TITLE]_[PUBLICATION_DATE:date:dd-MM-yyyy]_[PUBLICATION_BOOK_NAME]_[PUBLICATION_PAGE:zeroPadding:4].pdf</filename-template>
+					</script-properties>
+				</config>
+			</module>
+
+			<module ref="Export PDF file">
+				<class>com.picdar.process2.Delivery.DataWriter.DataWriter</class>
+				<config>
+					<storeitem>Production</storeitem>
+					<filename mode="template" singleitems="true">$$value:EXPORT_FILENAME$$</filename>
+					<directory singleitems="true">%%value:EXPORT_LOCATION%%</directory>
+					<fileExistsMode>overwrite</fileExistsMode>
+					<retrieve_data_object>FILE_DATA</retrieve_data_object>
+					<rejects_item_if_failedtowrite>true</rejects_item_if_failedtowrite>
+					<rejectEmptyStores>true</rejectEmptyStores>
+					<rejects_item_with_no_mimefile>true</rejects_item_with_no_mimefile>
+				</config>
+			</module>
+<!--
+			<module ref="Data Inspector">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config/>
+			</module>
+-->
+			<module ref="Add PDF export audit record for successful export">
+				<class>com.picdar.process2.Repository.JDBCStatement.DataObjectJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<object-source>FILE_DATA</object-source>
+					<use-at>true</use-at>
+					<statement>UPDATE AUDIT_PDF_EXPORT SET LATEST_EXPORT = 'N' WHERE ASSET_ID = '@@read-from:__dataobject-key@@' AND EXPORT_LOCATION = '%%value:EXPORT_LOCATION%%' AND LATEST_EXPORT = 'Y'</statement>
+					<statement>INSERT INTO AUDIT_PDF_EXPORT (ASSET_ID, EXPORT_LOCATION, FILENAME, TIMESTAMP, LATEST_EXPORT) values ('@@read-from:__dataobject-key@@', '%%value:EXPORT_LOCATION%%', '@@read-from:FIELD.EXPORT_FILENAME@@', SYSDATE, 'Y')</statement>
+				</config>
+			</module>						
+
+		</modules>
+		%%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>
