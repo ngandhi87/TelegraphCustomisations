@@ -1,0 +1,159 @@
+<media-mogul-configuration>
+	<description>
+		As per customer instruction:
+		Create a weed process that removes all stories selected in a holding table from CHP. The
+		stories will be sourced from 1) Stories loaded via DTI up to the 14/03/2016 and 2) Stories by 3rd parties.
+
+		Create this table: create table dti_purge_holding_table ( asset_id varchar(24));
+		To populate the table for DTI TMG Stories:
+		To populate the table for 3rd party stories:
+insert into dti_purge_holding_table select distinct s.asset_id from story s, usage u where 
+s.asset_id = u.asset_id and 
+s.feed_name in ( 'SmartLogic NI','SmartLogic ANL','SmartLogic Express','SmartLogic MGN','SmartLogic Guardian' )
+
+	</description>
+	<config groupname="AssetPurger">
+		<properties>
+			<CLASS hidden="true">Lifecycle Management</CLASS>
+			<TYPE hidden="true">Purger</TYPE>
+			<NAME description="Process name">Other Story Weeder</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<NORMALLY_RUNNING hidden="true">n</NORMALLY_RUNNING>
+			<BATCH_SIZE description="Number of stories to process in a cycle">200</BATCH_SIZE>
+			<LIMIT description="Number of stories to process per run">0</LIMIT>
+			<HOLDOFF_INDEX_QUEUE_SIZE description="Pause until the story index queue is below this size">200</HOLDOFF_INDEX_QUEUE_SIZE>
+			<SNAPSHOT_TABLE>dti_purge_holding_table</SNAPSHOT_TABLE>
+
+			<datasource>default</datasource>
+		</properties>
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1,6,10</dates>
+				<weekdays>1-5</weekdays>
+				<hours>0,4,8,12,16,20</hours>
+				<minutes>0,15,30,45</minutes>
+			</timedschedule>
+		</schedule>
+
+		<modules>
+
+			<module ref="RecordSelector">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<batchsize>%%value:BATCH_SIZE%%</batchsize>
+					<datasource>%%value:datasource%%</datasource>
+					<limit>%%value:LIMIT%%</limit>
+
+
+					<table>ASSET</table>
+					<idfield>ASSET_ID</idfield>
+					<additional-table/>
+
+					<criteria><![CDATA[
+						asset_id in 
+						( select asset_id from %%value:SNAPSHOT_TABLE%% where ROWNUM < '%%value:BATCH_SIZE%%' ) and
+						exists ( select 1 from story s where s.feed_name in ('SmartLogic NI','SmartLogic ANL','SmartLogic Express','SmartLogic MGN','SmartLogic Guardian') and s.asset_id = asset.asset_id ) and
+						( select count(*) from chp_index_queue where upper(status) = 'PENDING' and substr(item_key,9,4) = 'STRY') < '%%value:HOLDOFF_INDEX_QUEUE_SIZE%%' + 1
+						]]></criteria>
+				</config>
+			</module>
+
+			<module ref="Get cookies and perform deletions">
+				<class>com.picdar.process2.Repository.DatabaseDeleter.DatabaseDeleter</class>
+				<config>
+					<logkeys>true</logkeys>
+					<cookiestore>cookie</cookiestore>
+					<versioncookies>ALL</versioncookies>
+
+					<deletions>
+						<deletion table="ASSET"/>
+						<deletion table="PAGE_VERSION"/>
+						<deletion table="PICTURE_VERSION"/>
+						<deletion table="STORY_VERSION"/>
+						<deletion table="MEDIA_VERSION"/>
+						<deletion table="DOCUMENT_VERSION"/>
+						<deletion table="ASSET_INFO"/>
+						<deletion table="ASSET_PROPERTIES"/>
+
+						<extemd field="USAGE_ID" type="USAGE"/>
+
+						<deletion table="ASSET_NOTICE"/>
+						<deletion table="USAGE"/>
+						<deletion table="AUTOSAVE"/>
+						<deletion table="CROP_MARKUP"/>
+						<deletion table="NAMED_CLIPS"/>
+
+						<deletion audit="MM_SHELF,MM_ASSET_SHELF" table="MM_ASSET_SHELF" touchnodetable="MM_SHELF"/>
+						<deletion audit="HARD_CATEGORIES,ASSET_CATEGORY" table="ASSET_CATEGORY" touchnodetable="HARD_CATEGORIES"/>
+						<deletion audit="PACKAGES,ASSET_PACKAGES" table="ASSET_PACKAGES" touchnodetable="PACKAGES"/>
+						<deletion audit="MM_PARKING,PARKED_ASSET_LINK" table="PARKED_ASSET_LINK" touchnodetable="MM_PARKING"/>
+						<deletion audit="SUPPLIER,ASSET_ROYALTY_LINK" table="ASSET_ROYALTY_LINK" touchnodeforeignkey="ROYALTY_ID" touchnodetable="SUPPLIER"/>
+						<deletion table="WORKFLOW_ITEM_ASSET"/>
+
+						<deletion keyfield="ASSET_ID" table="LINKED_ASSET"/>
+						<deletion keyfield="LINK_TO" table="LINKED_ASSET"/>
+
+						<deletion linkedtable="MM_POLICY" linkedtablefield="POLICY_ID" table="ASSET_POLICY_LINK" tablefield="POLICY_ID"/>
+
+						<emd type="PICTURE"/>
+						<emd type="STORY"/>
+						<emd table="PAGE"/>
+						<emd type="MEDIA"/>
+						<emd type="DOCUMENT"/>
+						<emd type="COMPOSITE"/>
+
+						<deletion table="PICTURE"/>
+						<deletion table="PAGE"/>
+						<deletion table="STORY"/>
+						<deletion table="MEDIA"/>
+						<deletion table="DOCUMENT"/>
+						<deletion table="COMPOSITE"/>
+					</deletions>
+				</config>
+			</module>
+
+			<!-- Add the assets to the Lucene index queues -->
+			<module ref="LuceneIndex">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>%%value:datasource%%</datasource>
+					<failureiscritical>false</failureiscritical>
+					<indexfrom>reference</indexfrom>
+					<indextables>picture,story,media,composite,document</indextables>
+					<batchsize>10</batchsize>
+					<indexer-action>unindex</indexer-action>
+					<use-index-manager-for-batch>true</use-index-manager-for-batch>
+					<index-priority>weeding</index-priority>
+				</config>
+			</module>
+
+			<module ref="Delete cookies">
+				<class>com.picdar.process2.Repository.AssetSetDeleter.AssetSetDeleter</class>
+				<config>
+					<log-upfront>true</log-upfront>
+
+					<read-cookie>cookie</read-cookie>
+				</config>
+			</module>
+			
+
+			<module ref="Remove from batch table">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>true</use-at>
+					<statement>delete from %%value:SNAPSHOT_TABLE%%  where asset_id='@@read-from:__process-key@@'</statement>
+				</config>
+			</module>		
+
+		</modules>
+	</config>
+</media-mogul-configuration>

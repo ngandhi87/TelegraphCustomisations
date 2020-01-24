@@ -1,0 +1,121 @@
+<media-mogul-configuration>
+    <description>
+This process will generate a list of assets with usages over than %%value:NO_OF_USAGES%% and send email to %%value:RECEIPIENT_EMAILS%% 
+</description>
+    <config groupname="Report">
+        <properties>
+            <CLASS>Maintenance</CLASS>
+            <TYPE>Report</TYPE>
+            <NAME>Report - Assets With Large Number of Usages</NAME>
+            <APP_GROUP>SYSGROUP2</APP_GROUP>
+            <START_URL/>
+            <EMAIL_SUBJECT description="Email Subject">DEV CHP Report - Assets With Large Usages</EMAIL_SUBJECT>
+            <RECEIPIENT_EMAILS description="Receipient email address separate by comma">appseditorial@telegraph.co.uk</RECEIPIENT_EMAILS>
+            <NO_OF_USAGES description="Assets with usages over this number will be included in the report">50</NO_OF_USAGES>
+            <NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+            <schedule-timed-weekdays/>
+            <schedule-timed-dates/>
+            <schedule-timed-months/>
+            <TEMPLATE/>
+        </properties>
+        <schedule>
+            <scheduletype>scheduled</scheduletype>
+            <runinterval>
+                <count>5</count>
+                <intervalsize>minute</intervalsize>
+            </runinterval>
+            <timedschedule>
+                <hours>3</hours>
+                <minutes>0</minutes>
+                <weekdays/>
+                <dates/>
+                <months/>
+            </timedschedule>
+        </schedule>
+        <modules>
+            <module ref="Generate the summary">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>					
+						select p.asset_id AS "1_ASSET_ID", TO_CHAR(p.CREATION_STAMP, 'DD/MM/YYYY') AS "2_DATE_LOADED", count(u.usage_id) AS "3_NO_OF_USAGES"
+						from usage u, picture p
+						where p.asset_id = u.asset_id
+						  and not exists (select 1 from asset a where p.asset_id = a.asset_id and a.lifecycle_status = 'Deleted')
+						group by p.asset_id, TO_CHAR(p.CREATION_STAMP, 'DD/MM/YYYY')
+						having count(u.usage_id) &gt; %%value::NO_OF_USAGES%%
+						order by 3 desc						
+					</statement>
+                    <store_name>ASSETS_WITH_LARGE_USAGES</store_name>
+                    <info_store_name>ASSETS_WITH_LARGE_USAGES_INFO</info_store_name>
+                </config>
+            </module>
+            <module ref="GenerateCSV">
+                <class>com.picdar.process2.Processing.GenerateCSV.GenerateCSV</class>
+                <config>
+                    <store_name>ASSETS_WITH_LARGE_USAGES</store_name>
+                    <csv_store_name>ASSETS_WITH_LARGE_USAGES_CSV</csv_store_name>
+                    <escape_type>quotes</escape_type>
+                </config>
+            </module>
+            <module ref="Get Current DateTime">
+                <class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>
+						SELECT TO_CHAR(sysdate, 'DD/MM/YYYY HH24:MI:SS') AS DATE_WITH_TIME, 
+						TO_CHAR(sysdate, 'YYYY_MM_DD') AS DATE_FILE_FORMAT
+						FROM DUAL
+					</statement>
+                    <store_name>CURRENT_TIMESTAMP</store_name>
+                    <stores_field_names>no</stores_field_names>
+                    <add_to_process_item>yes</add_to_process_item>
+                </config>
+            </module>
+            <module ref="Create Email Content">
+                <class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+                <config>
+                    <object-name>CURRENT_TIMESTAMP</object-name>
+                    <metadata-processors>
+                        <processor class="com.picdar.process2.Processing.MetaDataProcessor.StringManipulator">
+                            <properties>
+                                <output-field>EMAIL_CONTENT</output-field>
+                                <string>
+                                    <![CDATA[Please find attached for the list of assets with over %%value:NO_OF_USAGES%% usages as of {DATE_WITH_TIME}.]]>
+                                    								
+                                </string>
+                                <tidy-path>false</tidy-path>
+                            </properties>
+                        </processor>
+                    </metadata-processors>
+                </config>
+            </module>
+            <module ref="Copy Email Content to Object">
+                <class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+                <config>
+                    <object-name>CURRENT_TIMESTAMP</object-name>
+                    <metadata-processors>
+                        <processor class="com.picdar.process2.Processing.MetaDataProcessor.AttributeToProcessItemObject">
+                            <properties>
+                                <attribute-name>EMAIL_CONTENT</attribute-name>
+                                <target-object>EMAIL_CONTENT</target-object>
+                            </properties>
+                        </processor>
+                    </metadata-processors>
+                </config>
+            </module>
+            <module ref="Send Email with CSV report as attachment">
+                <class>com.picdar.process2.Delivery.EmailSender.SimpleMailer</class>
+                <config>
+                    <email-source-obj>EMAIL_CONTENT</email-source-obj>
+                    <attachment-source-obj>ASSETS_WITH_LARGE_USAGES_CSV</attachment-source-obj>
+                    <attachment-name>Assets_With_Large_Usages.csv</attachment-name>
+                    <to-email>%%value:RECEIPIENT_EMAILS%%</to-email>
+                    <from-email>chp@telegraph.co.uk</from-email>
+                    <subject>%%value:EMAIL_SUBJECT%%</subject>
+                    <MailManager>MailManager</MailManager>
+                </config>
+            </module>
+        </modules>
+    </config>
+</media-mogul-configuration>

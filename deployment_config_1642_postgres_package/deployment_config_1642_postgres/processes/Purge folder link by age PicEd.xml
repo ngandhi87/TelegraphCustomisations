@@ -1,0 +1,207 @@
+<media-mogul-configuration>
+	<config groupname="Purge folder link by age PICED">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Purge</TYPE>
+			<NAME hidden="true">Purge folder link by age PicEd</NAME>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<START_URL/>
+			<APP_GROUP>SYSGROUP2</APP_GROUP>
+			<OWNER>System</OWNER>
+			<node_id description="Folder ID">TELEMMGLHCAT000000221761</node_id>
+			<unlinktime description="Maximum age of links">28</unlinktime>
+		</properties>
+
+
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>30</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>3</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+
+
+<!-- To find the node_id required for a community folder use a variant of the following SQL query
+     to extract the applicable nodes and then choose the node_id required:
+
+  select node_id,path from ( 
+  select node_id,sys_connect_by_path( key, '/') as path 
+	from hard_categories hc 
+	where level > 0 
+	start with key_level = 0 
+	connect by prior node_id = parent_id ) s where
+  s.path like '%PICED%'
+
+NB: if ORA-30004 error occurs, change the '/' to another character since the '/' is then part of a folder name and therefore would cause false separation.
+NB: this process will unlink only one folder per asset per cycle. So for multiple links, it will need to run multiple times. 
+
+OUTPUT (2015-05-01, Production system):
+
+NODE_ID				PATH
+TELEMMGLHCAT000000221761	/TMG Picture Desk/PICED
+TELEMMGLHCAT000000221762	/TMG Picture Desk/PICED/Conference
+
+In this case the node_id is 'TELEMMGLHCAT000000221761'; this folder any any folder below it is then monitored for expired links to pictures.
+
+-->
+		<modules>
+
+			<module ref="Find linked pictures for indexing">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<datasource>default</datasource>
+					<table>PICTURE</table>
+					<idfield>ASSET_ID</idfield>
+					<criteria><![CDATA[ 
+asset_id in ( 
+	select ac.asset_id 
+	from ASSET_CATEGORY ac 
+	where ac.node_id in ( 
+		SELECT hc.node_id 
+		FROM hard_categories hc
+		CONNECT BY PRIOR hc.NODE_ID = hc.PARENT_ID 
+		START WITH hc.node_id = '%%value:node_id%%'
+	) 
+) 
+					]]></criteria>
+					<limit>0</limit>
+					<batch>1</batch>
+				</config>
+			</module>
+
+			<module ref="Read the picture record">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>PICTURE_DOA</do-store-name>
+					<load-emd>no</load-emd>
+					<add-field-info>no</add-field-info>
+					<fields_to_read>
+						<match_type name="PICTURE"/>
+					</fields_to_read>
+				</config>
+			</module>
+
+			<module ref="Find the hierarchy node">
+				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+				<config>
+					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
+					<datasource>default</datasource>
+					<table>ASSET_CATEGORY</table>
+					<idfield>NODE_ID</idfield>
+					<limit>1</limit>
+					<criteria><![CDATA[ 
+ASSET_ID =  '$$ITEM_ID$$' and 
+timestamp < sysdate - %%value:unlinktime%% and 
+NODE_ID IN ( 
+	SELECT hc.node_id 
+	FROM hard_categories hc
+	CONNECT BY PRIOR hc.NODE_ID = hc.PARENT_ID 
+	START WITH hc.node_id = '%%value:node_id%%' 
+) 
+]]></criteria>
+					<store-name>NODE_ID</store-name>
+				</config>
+			</module>
+
+			<module ref="See if indexing is required">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<object-source>PHOTORECORD_DOA</object-source>
+<statement><![CDATA[SELECT COUNT(a.ASSET_ID) FROM ASSET_CATEGORY a where ASSET_ID =  '@@read-from:__process-key@@' and a.node_id = '%%value:node_id%%' and timestamp < sysdate - %%value:unlinktime%%]]></statement>
+					<store_name>HAS_NODES</store_name>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>yes</add_to_process_item>
+				</config>
+			</module>
+
+        <module ref="Log the Information 1">
+          <class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+          <config/>
+            </module>
+
+
+			<module ref="Get the node path">		
+				<class>com.picdar.process2.Repository.HierarchyProcessor.HierarchyProcessor</class>
+				<config>
+					<collection-manager>CategoryCollectionManager</collection-manager>
+					<user-name>Administrator</user-name>
+					<action>get-path</action>
+					<read-name>NODE_ID</read-name>
+					<store-name>NODE_PATH</store-name>
+				</config>
+			</module>
+
+
+			<module ref="Store the node path in the picture DOA">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>PICTURE_DOA</object-name>
+					<metadata-processors>
+						<processor class="com.picdar.process2.Processing.MetaDataProcessor.AttributeFromProcessItemObject" ref="CopyPath">
+							<properties>
+								<source-object>NODE_PATH</source-object>
+								<attribute-name>NODE_PATH</attribute-name>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+
+
+			<module ref="Delete the node">
+				<class>com.picdar.process2.Repository.AssetLinker.AssetCollectionLinker</class>
+				<config>
+					<user-name>Administrator</user-name>
+					<collection-manager>CategoryCollectionManager</collection-manager>
+					<action>unlink</action>
+					<retrieve-data>
+						<dataobject>PICTURE_DOA</dataobject>
+					</retrieve-data>
+					<node-from-dataobject field="NODE_PATH"/>
+					<match-first-found>yes</match-first-found>
+				</config>
+			</module>
+
+			<module ref="Re-index asset">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<run_conditions rule-do-item="HAS_NODES">
+						<rules>
+							<rule name="Nodes">
+								<criteria>
+									<criterion datatype="number" field="COUNT(a.ASSET_ID)" operator="gt" value="0"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<index-manager-resource>IndexManager</index-manager-resource>
+					<datasource>default</datasource>
+					<failureiscritical>false</failureiscritical>
+					<!--
+					<indexfrom>metadata</indexfrom>
+					<metadata-object-name>PICTURE_DOA</metadata-object-name>
+					-->
+					<indexfrom>reference</indexfrom>					
+					<indextables>picture,story,media,composite,document</indextables>
+					<batchsize>10</batchsize>
+					<indexer-action>index</indexer-action>
+					<use-index-manager-for-batch>true</use-index-manager-for-batch>
+					<index-priority>modification</index-priority>					
+				</config>
+			</module>				
+
+		</modules>
+
+	</config>
+</media-mogul-configuration>

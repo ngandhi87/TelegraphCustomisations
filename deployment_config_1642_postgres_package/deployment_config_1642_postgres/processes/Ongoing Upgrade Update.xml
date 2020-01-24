@@ -1,0 +1,42 @@
+<media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS>Maintenance</CLASS>
+			<TYPE>Database</TYPE>
+			<NAME>Ongoing Upgrade Update</NAME>
+			<APP_GROUP/>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+		</properties>
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>hour</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<hours/>
+				<minutes/>
+				<weekdays/>
+				<dates/>
+				<months/>
+			</timedschedule>
+		</schedule>
+		<modules>
+			<module ref="update transformer table">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[update transformer set lang_version='1.0' where lang_version is null and stylesheet LIKE '%<xsl:stylesheet%version="1.0"%']]></statement>
+				</config>
+			</module>		
+			<module ref="update mm_user_preferences table">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[update MM_USER_PREFERENCES set UPDATE_STAMP = sysdate, CREATION_STAMP = sysdate where UPDATE_STAMP is null or CREATION_STAMP is null]]></statement>
+				</config>
+			</module>		
+		</modules>
+	</config>
+</media-mogul-configuration>

@@ -1,0 +1,36 @@
+<media-mogul-configuration>
+	<config groupname="Lock Weeder">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Weeder</TYPE>
+			<NAME description="Name">Lock Weeder</NAME>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<DEFAULT_PURGE description="Time period for purging CHP application locks (Days)">3</DEFAULT_PURGE>
+
+		</properties>
+		<modules>
+	<module ref="ApplicationLockWeeder">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>DELETE FROM MM_LOCK WHERE DATE_CREATED &lt;= TRUNC(SYSDATE) - %%value:DEFAULT_PURGE%%</statement>
+				</config>
+			</module>
+		</modules>
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>6</count>
+				<intervalsize>hour</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>3</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

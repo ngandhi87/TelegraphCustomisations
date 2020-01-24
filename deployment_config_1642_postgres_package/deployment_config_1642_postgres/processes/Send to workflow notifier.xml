@@ -1,0 +1,492 @@
+<media-mogul-configuration>
+
+	<description>
+		This process reads the data from a table SEND_WORKLOW_EMAIL_QUEUE and send the emails to the concerned recipients.
+	</description>
+
+	<config groupname="Send To Legal">
+		<properties>
+			<CLASS>Workflow</CLASS>
+			<TYPE>Email Notifier</TYPE>
+			<NAME>Send to workflow notifier</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+			<!--START_URL>http://drhub-sys1-uat1:8080/SystemManagement/ProcessStarter</START_URL--> 
+			<mail-host>mailhost.telegraph.co.uk</mail-host>
+			<mail-host-port>25</mail-host-port>
+			<from-email>CHPNotices &amp;lt;noreply@telegraph.co.uk&amp;gt;</from-email>
+		<BLOCKED>n</BLOCKED></properties>
+		<modules>
+		
+			<module ref="Generate the summary">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+	            	<datasource>default</datasource>
+	            	<statement>SELECT * FROM SEND_WORKFLOW_EMAIL_QUEUE WHERE STATUS = 'PENDING'</statement>
+					<store_name>PENDING_EMAIL_QUEUE_ITEMS</store_name>
+					<stores_field_names>false</stores_field_names>
+	 			</config>
+	    		</module>
+	    	
+	    	<module ref="ADD a flag to the current process item">
+				<class>com.picdar.process2.Processing.ProcessItemProcessor.ProcessItemProcessor</class>
+				<config>
+					<add-object name="itemtype">workflowJobs</add-object>
+				</config>
+			</module>
+			
+			<!--  A Groovy Script is required to create process items based on the dataobjects in the dataobject array above -->
+			<module ref="Prepare Process Items">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="workflowJobs"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<script-name>PrepareProcessItemsFromDataObjectArray</script-name>
+					<script-properties>
+						<doa-read-name>PENDING_EMAIL_QUEUE_ITEMS</doa-read-name>
+						<do-store-name-key>PENDING_EMAIL_DO</do-store-name-key>
+						<item-type-key>itemtype</item-type-key>
+						<item-type>emailJob</item-type>
+						<item-type-to-process>workflowJobs</item-type-to-process>
+					</script-properties>
+				</config>
+			</module>
+	    	
+	    	<module ref="Read the XML into the Process Item object from the DataObject">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="emailJob"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<data-processors>
+						<processor class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>PENDING_EMAIL_DO</source-do>
+								<source-attr>WORKFLOW_XML</source-attr>
+								<destination>WORKFLOW_XML</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+			
+			<module ref="Fetch the actual workflow id">
+				<class>com.picdar.process2.Processing.XMLXPathSelector.XMLXPathSelector</class>
+				<config>
+					<run_conditions rule-process-item="Adding parent emd to current process item">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="emailJob"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<xpath>/XMLData/XMLDataObjects/XMLDataObject[@type = 'WORKFLOW_ITEM']/primary_key</xpath>
+					<read-name>WORKFLOW_XML</read-name>
+					<store-name>ACTUAL_WORKFLOW_ID</store-name>
+					<action-if-not-found>ignore</action-if-not-found>
+				</config>
+			</module>
+			
+			<module ref="Read the Workflow Job ID into the Process Item object from the DataObject">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="emailJob"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<data-processors>
+						<processor class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>PENDING_EMAIL_DO</source-do>
+								<source-attr>WORKFLOW_ID</source-attr>
+								<destination>WORKFLOW_ID</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+			
+			<module ref="Get the Assets associated with the workflow job">
+            	<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="emailJob"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+                     			<datasource>default</datasource>
+                     			<statement>SELECT asset_id, workflow_item_id FROM workflow_item_asset WHERE  workflow_item_id='@@read-from:ACTUAL_WORKFLOW_ID@@'</statement>
+					<store_name>WORKFLOW_JOB_ASSETS_DOA</store_name>
+					<stores_field_names>no</stores_field_names>
+					<use-at>true</use-at>
+					<add_to_process_item>yes</add_to_process_item>
+ 				</config>
+	    	</module>
+	    	
+			<module ref="Modify the  DataObject to add workflow_xml">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="emailJob"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<object-name>WORKFLOW_JOB_ASSETS_DOA</object-name>
+					<metadata-processors>
+						<processor class="com.picdar.process2.Processing.MetaDataProcessor.AttributeFromProcessItemObject" ref="EXTERNAL_REF">
+							<properties>
+								<attribute-name>WORKFLOW_XML</attribute-name>
+								<source-object>WORKFLOW_XML</source-object>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+	    	
+	    	<module ref="Prepare Process Items for individual fetched asset ids">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="emailJob"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<script-name>PrepareProcessItemsFromDataObjectArray</script-name>
+					<script-properties>
+						<doa-read-name>WORKFLOW_JOB_ASSETS_DOA</doa-read-name>
+						<do-store-name-key>ASSET_IDS</do-store-name-key>
+						<item-type-key>itemtype</item-type-key>
+						<item-type>assetIds</item-type>
+						<item-type-to-process>emailJob</item-type-to-process>
+						<process-item-key-attribute>ASSET_ID</process-item-key-attribute>
+						<copy-object-to-new-items>WORKFLOW_ID</copy-object-to-new-items>
+					</script-properties>
+				</config>
+			</module>
+			
+			<module ref="Read the workflow_item_id into the Process Item object from the DataObject">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<data-processors>
+						<processor class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>ASSET_IDS</source-do>
+								<source-attr>workflow_item_id</source-attr>
+								<destination>workflow_item_id</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+			
+			<module ref="Read the asset_id into the Process Item object from the DataObject">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<data-processors>
+						<processor class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>ASSET_IDS</source-do>
+								<source-attr>ASSET_ID</source-attr>
+								<destination>ASSET_ID</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+			
+			<module ref="Read the picture asset DataObject">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<!-- <read-name>ASSET_ID</read-name> -->
+					<do-store-name>ASSET_DO</do-store-name>
+					<xml-store-name>ASSET_DO_XML</xml-store-name>
+					<datasource>default</datasource>
+					<allowed-locations>default</allowed-locations>
+				</config>
+			</module>
+			
+			<module ref="Copy the headline into the process item.">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<object-name>ASSET_DO</object-name>
+					<metadata-processors>
+						<processor class="com.picdar.process2.Processing.MetaDataProcessor.AttributeFromProcessItemObject" ref="EXTERNAL_REF">
+							<properties>
+								<attribute-name>HEADLINE</attribute-name>
+								<source-object>HEADLINE</source-object>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+			
+			<module ref="Read the workflow job as DataObject">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<read-name>WORKFLOW_ITEM_ID</read-name>
+					<do-store-name>WORKFLOW_AS_DO</do-store-name>
+					<xml-store-name>WORKFLOW_AS_DO_XML</xml-store-name>
+					<datasource>default</datasource>
+					<allowed-locations>default</allowed-locations>
+					<DisplayChildRecordsAsXMLObj>true</DisplayChildRecordsAsXMLObj>
+				</config>
+			</module>
+			
+			<module ref="Read the preview of the asset from CHP">
+				<class>com.picdar.process2.Repository.AssetSetReader.AssetSetReader</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<FieldManagerResource>FieldManager</FieldManagerResource>
+					<AssetAccessResource>AssetAccess</AssetAccessResource>
+					<DataManagerResource>DataManager</DataManagerResource>
+					<AssetTypes>Thumbnail,Preview</AssetTypes>
+					<StoreAssetsName>pictureAssetFile</StoreAssetsName>
+					<StreamAssets>false</StreamAssets>
+					<MetaDataObjectName>ASSET_DO</MetaDataObjectName>
+				</config>
+			</module>
+			
+			<!--  At this point we have process items with for individual asset_ids
+			 and each process item has a workflow job as one of the object in it. 
+			 The workflow job Id may be duplicated which means that the job has multiple assets associated
+			 
+			 This Script contains code with funcationality that is more specific to this particular use case and it may not 
+			 be useful 
+			 -->
+			 
+			 <module ref="Copy the workflow xml to process item object for convienece to fetch the workflow attributes using the Xpath">
+				<class>com.picdar.process2.Processing.DataProcessor.DataProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<data-processors>
+						<processor class="com.picdar.process2.Processing.DataProcessor.AttributeToProcessItemObject">
+							<properties>
+								<source-do>ASSET_IDS</source-do>
+								<source-attr>WORKFLOW_XML</source-attr>
+								<destination>WORKFLOW_XML</destination>
+							</properties>
+						</processor>
+					</data-processors>
+				</config>
+			</module>
+			
+			<module ref="Fetch the workflow creation stamp">
+				<class>com.picdar.process2.Processing.XMLXPathSelector.XMLXPathSelector</class>
+				<config>
+					<run_conditions rule-process-item="Adding parent emd to current process item">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<xpath>/XMLData/XMLDataObjects/XMLDataObject/attributes/attribute[@name='CREATION_STAMP']
+					</xpath>
+					<read-name>WORKFLOW_XML</read-name>
+					<store-name>WORKFLOW_CREATION_STAMP</store-name>
+					<action-if-not-found>ignore</action-if-not-found>
+				</config>
+			</module>
+			
+			<module ref="Fetcch the workflow subject">
+				<class>com.picdar.process2.Processing.XMLXPathSelector.XMLXPathSelector</class>
+				<config>
+					<run_conditions rule-process-item="Adding parent emd to current process item">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<xpath>/XMLData/XMLDataObjects/XMLDataObject/attributes/attribute[@name='EMAIL_SUBJECT']
+					</xpath>
+					<read-name>WORKFLOW_XML</read-name>
+					<store-name>EMAIL_SUBJECT</store-name>
+					<action-if-not-found>ignore</action-if-not-found>
+				</config>
+			</module>
+			
+			<module ref="Fetcch the email recipients">
+				<class>com.picdar.process2.Processing.XMLXPathSelector.XMLXPathSelector</class>
+				<config>
+					<run_conditions rule-process-item="Adding parent emd to current process item">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<xpath>/XMLData/XMLDataObjects/XMLDataObject/attributes/attribute[@name='WORKFLOW_MAIL_RECIPIENTS']</xpath>
+					<read-name>WORKFLOW_XML</read-name>
+					<store-name>WORKFLOW_MAIL_RECIPIENTS</store-name>
+					<action-if-not-found>ignore</action-if-not-found>
+				</config>
+			</module>
+			
+			<!-- We want this module to be execute only once irrespective of the number of process items currently 
+			present in the Process, this logic is handled inside the script, since this is more specific to this use case.
+			
+			Handling Logic: We are explicitly setting the process item status to ignored, and checking the same before processing inside the execute method.
+			-->
+			<module ref="Prepare And Send Email">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+					<script-name>PrepareAndSendEmail</script-name>
+					<script-properties>
+						<mail-smtp-host>%%value:mail-host%%</mail-smtp-host>
+						<mail-smtp-port>%%value:mail-host-port%%</mail-smtp-port>
+						<from-email>%%value:from-email%%</from-email>
+						<to-email-read-name>WORKFLOW_MAIL_RECIPIENTS</to-email-read-name>
+						<email-template-input>WORKFLOW_XML</email-template-input>
+						<email-template-transformer>WorkflowNotificationEmail</email-template-transformer>
+						<email-subject>EMAIL_SUBJECT</email-subject>
+						<regroup-key>WORKFLOW_ID</regroup-key>
+						<workflow-creation-stamp>WORKFLOW_CREATION_STAMP</workflow-creation-stamp>
+						<picture-retrieve-key>pictureAssetFile</picture-retrieve-key>
+						<item-type-key>itemtype</item-type-key>
+						<item-type-value-to-process>assetIds</item-type-value-to-process>
+						
+					</script-properties>
+				</config>
+			</module>
+<!--			
+			<module ref="DataInspector for logging">
+				<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+				<config>
+					<run_conditions rule-process-item="checking condition for process item type">
+						<rules>
+							<rule name="IsChildItem">
+								<criteria>
+									<criterion field="itemtype" operator="eq" value="assetIds"/>
+								</criteria>
+							</rule>
+						</rules>
+					</run_conditions>
+				</config>
+			</module>
+-->
+		</modules>
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1,6,10</dates>
+				<weekdays>1-5</weekdays>
+				<hours>0,4,8,12,16,20</hours>
+				<minutes>0,15,30,45</minutes>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

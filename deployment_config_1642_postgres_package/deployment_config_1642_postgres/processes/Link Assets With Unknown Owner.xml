@@ -1,0 +1,36 @@
+<media-mogul-configuration>
+	<config groupname="Link Assets With Unknown Owner">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">linker</TYPE>
+			<NAME description="Name">Link Assets With Unknown Owner</NAME>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<COMMUNITY_FOLDER description="community folder linker">TELEMMGLHCAT000000279176</COMMUNITY_FOLDER>
+
+		<BLOCKED>n</BLOCKED></properties>
+		<modules>
+	<module ref="community folder linker">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>INSERT INTO asset_category (timestamp, asset_id, node_id) SELECT sysdate, asset_id, '%%value:COMMUNITY_FOLDER%%' FROM asset WHERE owner_id NOT LIKE 'TELE%' AND owner_id !='System' AND asset_id NOT IN (SELECT asset_id FROM asset_category WHERE node_id ='%%value:COMMUNITY_FOLDER%%')</statement>
+				</config>
+			</module>
+		</modules>
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>6</count>
+				<intervalsize>hour</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>6</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

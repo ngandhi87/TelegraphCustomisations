@@ -1,0 +1,35 @@
+<media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS>Maintenance</CLASS>
+			<TYPE>Database</TYPE>
+			<NAME>Story Word Count Convert</NAME>
+			<APP_GROUP/>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<NORMALLY_RUNNING>n</NORMALLY_RUNNING>
+		</properties>
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>30</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<hours/>
+				<minutes/>
+				<weekdays/>
+				<dates/>
+				<months/>
+			</timedschedule>
+		</schedule>
+		<modules>
+			<module ref="convert story work count to number">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[update story set word_count_num = to_number(word_count) where word_count_num is null and rownum <= 1000]]></statement>
+				</config>
+			</module>		
+		</modules>
+	</config>
+</media-mogul-configuration>

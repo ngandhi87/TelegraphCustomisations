@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><media-mogul-configuration>
+	<config groupname="MakeBatch">
+		<properties>
+			<CLASS hidden="true">Workflow</CLASS>
+			<TYPE hidden="true">Make Batch</TYPE>
+			<NAME description="The name of the process">Make Batch Process</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<NORMALLY_RUNNING description="Should this process be normally running" hidden="true">y</NORMALLY_RUNNING>
+			<QUEUE_NAME description="Queue name" hidden="true">Make-Batch</QUEUE_NAME>
+			<BATCH_PREFIX description="Batch Id Prefix">CHP</BATCH_PREFIX>
+			<!--PROGRESS_STATE description="Name of the in progress state in that workflow">In Progress</PROGRESS_STATE-->
+			<COMPLETED_STATE description="Name of the completed state in that workflow">Completed</COMPLETED_STATE>
+		<BLOCKED>n</BLOCKED></properties>
+
+		<modules>
+			<module ref="Get the item from the queue">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-manager>QueueManager</queue-manager>
+					<queue-name>%%value::QUEUE_NAME%%</queue-name>
+					<batch-size>1</batch-size>
+					<limit>0</limit>
+					<item-location>QueueItem</item-location>
+					<fail-rejected>yes</fail-rejected>
+				</config>
+			</module>
+
+			<!--module ref="Inspect Objects">
+			       <class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+			       <config>
+			              <message>Inspecting Objects</message>
+			       </config>
+			</module-->
+			
+			<module ref="Get the next Batch Id">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<statement>SELECT '%%value:BATCH_PREFIX%%' || BATCH_ID_SEQ.nextval AS NEXT_ID FROM DUAL</statement>
+					<store_name>BATCH_DO</store_name>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>yes</add_to_process_item>
+				</config>
+			</module>
+
+			<module ref="Set Batch Id to JOB_BUMBER column of selected assets">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>no</add_to_process_item>
+					<statement>UPDATE PICTURE SET JOB_NUMBER = '@@read-from:BATCH_DO:NEXT_ID@@' WHERE ASSET_ID IN (SELECT ASSET_ID FROM WORKFLOW_ITEM_ASSET WHERE WORKFLOW_ITEM_ID='@@read-from:__process-key@@' AND ASSET_ID LIKE '%PICT%')</statement>
+					<statement>update WORKFLOW_ITEM set STATE_ID= (select NODE_ID from WORKFLOW_HIERARCHY where KEY = '%%value:COMPLETED_STATE%%' and PARENT_ID = (select PARENT_ID from WORKFLOW_HIERARCHY where NODE_ID = (select STATE_ID from WORKFLOW_ITEM where WORKFLOW_ITEM_ID = '@@read-from:__process-key@@'))) where WORKFLOW_ITEM_ID='@@read-from:__process-key@@'</statement>
+					<!--
+					<statement>insert into mm_index_queue (CREATION_STAMP,TABLE_NAME,ATTEMPT_COUNT,TARGET_INDEX,DATABASE,QUEUE_NAME,ITEM_TYPE,PRIMARY_KEY,STATUS,JOB_ID,LAST_ERROR,ITEM_DATASOURCE,FEED_NAME,ITEM_KEY,USER_NAME,ACTION,INDEX_ID,UPDATE_STAMP) SELECT sysdate,'',0,'','','MM_COMBINED_INDEX','',mm_index_queue_seq.nextval,'pending','','','','',asset_id,'','index',mm_index_queue_seq.nextval,sysdate FROM WORKFLOW_ITEM_ASSET WHERE WORKFLOW_ITEM_ID='@@read-from:__process-key@@' AND ASSET_ID LIKE '%PICT%'</statement>
+					<statement>insert into mm_index_queue (CREATION_STAMP,TABLE_NAME,ATTEMPT_COUNT,TARGET_INDEX,DATABASE,QUEUE_NAME,ITEM_TYPE,PRIMARY_KEY,STATUS,JOB_ID,LAST_ERROR,ITEM_DATASOURCE,FEED_NAME,ITEM_KEY,USER_NAME,ACTION,INDEX_ID,UPDATE_STAMP) select sysdate,'',0,'','','MM_PICTURE_INDEX','',mm_index_queue_seq.nextval,'pending','','','','',asset_id,'','index',mm_index_queue_seq.nextval,sysdate FROM WORKFLOW_ITEM_ASSET WHERE WORKFLOW_ITEM_ID='@@read-from:__process-key@@' AND ASSET_ID LIKE '%PICT%'</statement>
+					<statement>insert into MM_MLT_ENRICH_QUEUE (ITEM_DATASOURCE,QUEUE_NAME,ITEM_KEY,DATABASE,LAST_ERROR,PRIORITY,INFO,TABLE_NAME,INDEX_ID,UPDATE_STAMP,CREATION_STAMP,ACTION,STATUS,FEED_NAME,ATTEMPT_COUNT,ITEM_TYPE,JOB_ID,QUEUE_INDEX,USER_NAME,TARGET_INDEX,PRIMARY_KEY) SELECT null,'CHP_PICTURE_NLT2_QUEUE',asset_id,null,null,10,null,null,MM_MLT_ENRICH_QUEUE_SEQ.nextval,sysdate,sysdate,'Index','Pending',null,0,null,null,MM_MLT_ENRICH_QUEUE_SEQ.nextval,'Index Queue',null,null FROM WORKFLOW_ITEM_ASSET WHERE WORKFLOW_ITEM_ID='@@read-from:__process-key@@' AND ASSET_ID LIKE '%PICT%'</statement>
+					-->
+					<statement>					
+						insert into chp_index_queue (creation_stamp, update_stamp, queue_name, status, item_key, index_id, priority)
+						select cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date),
+							'MM_INDEX_QUEUE', 'PENDING', asset_id, chp_index_queue_seq.nextval, 15 
+						FROM WORKFLOW_ITEM_ASSET 
+						WHERE WORKFLOW_ITEM_ID='@@read-from:__process-key@@' AND ASSET_ID LIKE '%PICT%'
+					</statement>
+				</config>
+			</module>
+		</modules>
+
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>30</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>2-6</weekdays>
+				<hours>2</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

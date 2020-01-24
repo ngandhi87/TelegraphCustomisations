@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><media-mogul-configuration>
+	<config groupname="DripFeed">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Database</TYPE>
+			<NAME hidden="true">Bulk Change Cost Indicator By Ownership</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<NEW_COST_INDICATOR description="New Cost Indicator value that should be changed to">No Cost</NEW_COST_INDICATOR>
+			<OWNER description="Ownership of assets that should have the Cost Indicator changed to new value above">EPA</OWNER>
+			<NORMALLY_RUNNING hidden="true">n</NORMALLY_RUNNING>
+			<schedule-timed-weekdays/>
+			<schedule-timed-dates/>
+			<schedule-timed-months/>
+		<BLOCKED>n</BLOCKED></properties>
+		<schedule>
+			<scheduletype>manual</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<hours>00</hours>
+				<minutes>01</minutes>
+				<weekdays/>
+				<dates/>
+				<months/>
+			</timedschedule>
+		</schedule>
+		<modules>
+			<module ref="Change_Cost_Indicator_By_Ownership">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<!-- Change Cost Indicator, Reset Override Flag and Record Audit Trail -->
+					<statement>
+						UPDATE TMG_RIGHTS
+						SET COSTGROUPA = '%%value:NEW_COST_INDICATOR%%',
+							COST_OVERRIDDEN = '0',
+							OVERRIDDEN_AUDIT = DECODE(OVERRIDDEN_AUDIT, NULL, 'Cost Indicator was bulk changed to ''%%value:NEW_COST_INDICATOR%%'' by system admin on ' || to_char(cast(current_timestamp at time zone dbtimezone as date), 'YYYY-MM-DD HH24:MI:SS'), OVERRIDDEN_AUDIT || CHR(10) || 'Cost Indicator was bulk changed to ''%%value:NEW_COST_INDICATOR%%'' by system admin on ' || to_char(cast(current_timestamp at time zone dbtimezone as date), 'YYYY-MM-DD HH24:MI:SS')) 
+						WHERE ASSET_ID IN
+						(
+						SELECT p.ASSET_ID
+						FROM PICTURE p INNER JOIN ASSET a ON p.ASSET_ID = a.ASSET_ID
+						WHERE a.OWNER_ID = (SELECT ROLE_ID FROM MM_ROLE WHERE UPPER(ROLE_NAME) = UPPER('%%value:OWNER%%'))
+						)					
+					</statement>
+					<!-- Remove CostIndicatorOverride Icon -->
+					<statement>
+						UPDATE ASSET
+						SET EMD_ICONS = NULL
+						WHERE EMD_ICONS = 'CostIndicatorOverride'
+						AND ASSET_ID IN
+						(
+						SELECT p.ASSET_ID
+						FROM PICTURE p INNER JOIN ASSET a ON p.ASSET_ID = a.ASSET_ID
+						WHERE a.OWNER_ID = (SELECT ROLE_ID FROM MM_ROLE WHERE UPPER(ROLE_NAME) = UPPER('%%value:OWNER%%'))
+						)
+					</statement>
+					<statement>
+						UPDATE ASSET
+						SET EMD_ICONS = replace(EMD_ICONS, 'CostIndicatorOverride,', '')
+						WHERE EMD_ICONS like '%CostIndicatorOverride,%' 
+						AND ASSET_ID IN
+						(
+						SELECT p.ASSET_ID
+						FROM PICTURE p INNER JOIN ASSET a ON p.ASSET_ID = a.ASSET_ID
+						WHERE a.OWNER_ID = (SELECT ROLE_ID FROM MM_ROLE WHERE UPPER(ROLE_NAME) = UPPER('%%value:OWNER%%'))
+						)
+					</statement>
+					<statement>
+						UPDATE ASSET
+						SET EMD_ICONS = replace(EMD_ICONS, ',CostIndicatorOverride', '')
+						WHERE EMD_ICONS like '%,CostIndicatorOverride' 
+						AND ASSET_ID IN
+						(
+						SELECT p.ASSET_ID
+						FROM PICTURE p INNER JOIN ASSET a ON p.ASSET_ID = a.ASSET_ID
+						WHERE a.OWNER_ID = (SELECT ROLE_ID FROM MM_ROLE WHERE UPPER(ROLE_NAME) = UPPER('%%value:OWNER%%'))
+						)
+					</statement>
+					<!-- Add Assets to Backlog Index Queue -->
+					<statement>
+						INSERT INTO BACKLOG_INDEX_QUEUE (CREATION_STAMP, UPDATE_STAMP, QUEUE_NAME, STATUS, ITEM_KEY, INDEX_ID, ATTEMPT_COUNT)
+						(
+						SELECT cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date), 'MM_INDEX_QUEUE', 'PENDING', p.ASSET_ID, backlog_index_queue_seq.nextval, 0
+						FROM PICTURE p INNER JOIN ASSET a ON p.ASSET_ID = a.ASSET_ID
+						WHERE a.OWNER_ID = (SELECT ROLE_ID FROM MM_ROLE WHERE UPPER(ROLE_NAME) = UPPER('%%value:OWNER%%'))
+						)
+					</statement>
+				</config>
+			</module>
+			
+		</modules>
+	</config>
+</media-mogul-configuration>

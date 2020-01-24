@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Database</TYPE>
+			<NAME>Move failed items to 2nd queue</NAME>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<START_URL hidden="true"/>
+			<MINUTES_OLDER description="Failed items older than this value (in minute) will be moved to second queue">5</MINUTES_OLDER>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<schedule-timed-weekdays/>
+			<schedule-timed-dates/>
+			<schedule-timed-months/>
+		<BLOCKED>n</BLOCKED></properties>
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<hours>00</hours>
+				<minutes>01</minutes>
+				<weekdays/>
+				<dates/>
+				<months/>
+			</timedschedule>
+		</schedule>
+		<modules>
+			<module ref="Move Failed to 2nd Queue">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>update mm_queue set queue_name = queue_name || '.Failed' where upper(status) = 'FAILED' and queue_name not like '%.Failed' and update_stamp &lt;= cast(current_timestamp at time zone dbtimezone as date) - %%value:MINUTES_OLDER%%/1440</statement>
+				</config>
+			</module>
+		</modules>
+	</config>
+</media-mogul-configuration>

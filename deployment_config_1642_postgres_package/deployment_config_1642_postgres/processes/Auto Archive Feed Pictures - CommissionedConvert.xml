@@ -1,0 +1,148 @@
+<media-mogul-configuration>
+
+    <description>
+        This process is used to automatically archive any pictures loaded into the %%value:FEED_NAME%% feeds
+        %%value:DAYS_AFTER_LOADED:25%% days after loading (i.e. before they would naturally get weeded).
+        The process is called from the "Lifecycle transfer" sequence process.
+    </description>
+
+    <config groupname="Archiver">
+        <properties>
+            <CLASS>Lifecycle Management</CLASS>
+            <TYPE>Archiver</TYPE>
+            <NAME>Auto Archive Feed Pictures - CommissionedConvert</NAME>
+            <APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+            <NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+
+            <FEED_NAME>'CommissionedConvert','Commissioned','Commissioned_Scans'</FEED_NAME>
+            <DAYS_AFTER_LOADED>25</DAYS_AFTER_LOADED>
+            <BATCH_SIZE>100</BATCH_SIZE>
+        <schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/><schedule-timed-minutes/><BLOCKED>n</BLOCKED></properties>
+        <schedule>
+            <scheduletype>continuous</scheduletype>
+            <runinterval>
+                <count>1</count>
+                <intervalsize>minute</intervalsize>
+            </runinterval>
+            <timedschedule>
+                <hours>3</hours>
+                <minutes/>
+                <weekdays/>
+                <dates/>
+                <months/>
+            </timedschedule>
+
+        </schedule>
+        <modules>
+
+            <module ref="RecordSelector">
+                <class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
+                <config>
+                    <batchsize>%%value:BATCH_SIZE:10%%</batchsize>
+                    <datasource>default</datasource>
+
+                    <table>ASSET</table>
+                    <additional-table>PICTURE</additional-table>
+                    <idfield>ASSET_ID</idfield>
+                    <!--
+                    We want to select picture assets that match the following criteria:
+                        - Has a lifecycle status 'Feed'.
+                        - Feed name as specified.
+                        - Loaded on 25 days ago
+                    -->
+                    <criteria>upper(asset.lifecycle_status) = 'FEED' and asset.asset_id = picture.asset_id and
+                        picture.feed_name in(%%value:FEED_NAME%%) and picture.creation_stamp &lt; trunc(sysdate) -
+                        %%value:DAYS_AFTER_LOADED:25%%
+                    </criteria>
+                </config>
+            </module>
+
+            <!-- Read the assets. -->
+            <module ref="DataReader">
+                <class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+                <config>
+                    <do-store-name>metadataDO</do-store-name>
+                    <datasource>default</datasource>
+
+                    <!-- We are setting a field we want later, so there is no need to actually load any
+                        of the asset information. -->
+                    <load-emd>false</load-emd>
+                    <fields_to_read>
+                        <match_type name="story">
+                        </match_type>
+                        <match_type name="picture">
+                        </match_type>
+                        <match_type name="media">
+                        </match_type>
+                        <match_type name="document">
+                        </match_type>
+                        <match_type name="page">
+                        </match_type>
+                        <match_type name="composite">
+                        </match_type>
+                    </fields_to_read>
+                </config>
+            </module>
+
+            <!-- Set the lifecycle status for the asset to 'Archive'. -->
+            <module ref="MetaDataProcessor">
+                <class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+                <config>
+                    <object-name>metadataDO</object-name>
+                    <add-attributes>
+                        <add-attribute name="LIFECYCLE_STATUS">Archive</add-attribute>
+                        <add-attribute name="JUST_ENRICHED">true</add-attribute>
+                    </add-attributes>
+                </config>
+            </module>
+
+            <!-- Start the transaction. -->
+            <module ref="TransactionStart">
+                <class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+            </module>
+
+            <!-- Save the asset. -->
+            <module ref="DataObjectLoader">
+                <class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+                <config>
+                    <object-name>metadataDO</object-name>
+                    <match-existing-records>true</match-existing-records>
+                    <match-by-primary-key>true</match-by-primary-key>
+                    <update-matched-records>true</update-matched-records>
+                    <reject-unmatched-records>true</reject-unmatched-records>
+                    <reject-matched-records>false</reject-matched-records>
+                    <types-to-match>PICTURE,STORY,DOCUMENT,MEDIA,PAGE,COMPOSITE</types-to-match>
+                </config>
+            </module>
+
+            <!-- End the transaction. -->
+            <module ref="TransactionEnd">
+                <class>com.picdar.process2.Core.TransactionEnd</class>
+                <config/>
+            </module>
+
+            <module ref="LogArchiveMISEvent">
+                <class>com.picdar.process2.System.MISProcessLogger</class>
+                <config>
+                    <eventname>
+                        <success>Archive asset</success>
+                        <failure>do_not_log</failure>
+                    </eventname>
+                    <priority>
+                        <success>debug</success>
+                        <failure>do_not_log</failure>
+                    </priority>
+                    <eventtype>Lifecycle</eventtype>
+                    <eventowner>%_PROCESS_CLASS_%</eventowner>
+
+                    <property>Object ID</property>
+                    <use-itemid-as-objectid>true</use-itemid-as-objectid>
+                </config>
+            </module>
+
+        </modules>
+    </config>
+</media-mogul-configuration>

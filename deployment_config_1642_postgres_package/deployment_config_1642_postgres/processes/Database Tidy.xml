@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?><media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS>Maintenance</CLASS>
+			<TYPE>Database</TYPE>
+			<NAME>Database Tidy</NAME>
+			<APP_GROUP/>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+		<BLOCKED>n</BLOCKED></properties>
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>24</count>
+
+				<intervalsize>hour</intervalsize>
+
+			</runinterval>
+			<timedschedule>
+				<hours>00</hours>
+				<minutes>01</minutes>
+				<weekdays/>
+				<dates/>
+				<months/>
+			</timedschedule>
+		</schedule>
+
+		<modules>
+			<module ref="Delete_MIS_props">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from mm_mis_log_properties where event_id in (select event_id from mm_mis_log where time_stamp&lt; sysdate - 30)</statement>
+				</config>
+			</module>
+
+			<module ref="Delete_MIS">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from mm_mis_log where time_stamp&lt;sysdate - 30</statement>
+				</config>
+			</module>
+			<module ref="purge mm_lock_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from mm_lock_del</statement>
+				</config>
+			</module>
+			<module ref="purge ASSET_LOCATOR_PROPERTIES_DEL">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from ASSET_LOCATOR_PROPERTIES_DEL where timestamp&lt;sysdate - 365</statement>
+				</config>
+			</module>
+			<module ref="purge ASSET_LOCATOR_DEL">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from ASSET_LOCATOR_DEL where timestamp&lt;sysdate - 365</statement>
+				</config>
+			</module>
+			<module ref="purge mm_queue_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from mm_queue_del where timestamp&lt;sysdate - 30</statement>
+				</config>
+			</module>
+<!-- overspill queue relies on these values -->
+			<!--
+			<module ref="purge mm_index_queue_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from mm_index_queue_del  where timestamp&lt;sysdate - 30 </statement>
+				</config>
+			</module>
+			-->
+			<module ref="purge chp_index_queue_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from chp_index_queue_del  where timestamp&lt;sysdate - 30 </statement>
+				</config>
+			</module>
+			<module ref="purge asset_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from asset_del where timestamp&lt;sysdate - 2</statement>
+				</config>
+			</module>
+			<module ref="purge picture_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from picture_del where timestamp&lt;sysdate - 2</statement>
+				</config>
+			</module>
+			<module ref="purge story_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from story_del where timestamp&lt;sysdate - 2</statement>
+				</config>
+			</module>
+			<module ref="purge usage_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from usage_del where timestamp&lt;sysdate - 2</statement>
+				</config>
+			</module>
+
+			<module ref="purge asset_locator_properties_del">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[ delete from ASSET_LOCATOR_PROPERTIES_DEL where timestamp < sysdate - 2 ]]></statement>
+				</config>
+			</module>
+			
+			<module ref="purge MM_ENRICH_QUEUE_DEL">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<!--
+					<statement><![CDATA[ delete from MM_ENRICH_QUEUE_DEL where timestamp < sysdate - 2 ]]></statement>
+					-->
+					<statement><![CDATA[ truncate table MM_ENRICH_QUEUE_DEL]]></statement>
+				</config>
+			</module>
+
+			<module ref="purge MM_MLT_ENRICH_QUEUE_DEL">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<!--
+					<statement><![CDATA[ delete from MM_MLT_ENRICH_QUEUE_DEL where timestamp < sysdate - 2 ]]></statement>
+					-->
+					<statement><![CDATA[ truncate table MM_MLT_ENRICH_QUEUE_DEL]]></statement>
+				</config>
+			</module>
+
+			<module ref="purge MM_QUEUE HiresAssetRelocateQueue when assets no longer exist">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[ delete from MM_QUEUE where creation_stamp < sysdate - 10 and queue_name in ('AssetRelocateQueue', 'HiresAssetRelocateQueue') and last_error like 'No asset references found for cookie %' ]]></statement>
+				</config>
+			</module>
+
+			<module ref="purge MM_QUEUE for file that do not exist or are purged">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[delete from mm_queue where creation_stamp < sysdate - 6 and  last_error like '%File or folder: % doesn''t exist.' ]]></statement>
+				</config>
+			</module>
+
+
+			<module ref="purge MM_ENRICH_QUEUE of deleted files">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[delete from mm_enrich_queue where 
+not exists ( select 1 from asset where asset_id = item_key )]]></statement>
+				</config>
+			</module>
+
+
+
+			<module ref="purge MM_MLT_ENRICH_QUEUE of deleted files">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[delete from mm_mlt_enrich_queue where 
+not exists ( select 1 from asset where asset_id = item_key )]]></statement>
+				</config>
+			</module>
+
+			<module ref="Delete old workflow items">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					 <datasource>default</datasource>
+					 <!-- For EA-1588 -->
+					 <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-14 and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Library Correction') and is_final_state = '1'))</statement>
+					 <statement>delete from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-14 and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Library Correction') and is_final_state = '1')</statement>
+
+					 <!-- For EA-1539 -->
+					 <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-5 and state_id in (select node_id from workflow_hierarchy where parent_id in (select node_id from workflow_hierarchy where key in ('Set to Commissioned', 'Unset Commissioned', 'Set Handout Publicity Material', 'Unset Handout Publicity Material', 'Set to Social Media Internet', 'Unset Social Media Internet')) and is_final_state = '1'))</statement>
+					 <statement>delete from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-5 and state_id in (select node_id from workflow_hierarchy where parent_id in (select node_id from workflow_hierarchy where key in ('Set to Commissioned', 'Unset Commissioned', 'Set Handout Publicity Material', 'Unset Handout Publicity Material', 'Set to Social Media Internet', 'Unset Social Media Internet')) and is_final_state = '1')</statement>
+				</config>
+			</module>
+			
+			<module ref="purge HARD_CATEGORIES_DEL">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[ delete from HARD_CATEGORIES_DEL where timestamp < sysdate - 1 ]]></statement>
+				</config>
+			</module>
+
+			<module ref="purge MM_SHELF_DEL">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[ delete from MM_SHELF_DEL where timestamp < sysdate - 1 ]]></statement>
+				</config>
+			</module>
+
+		</modules>
+	</config>
+</media-mogul-configuration>
