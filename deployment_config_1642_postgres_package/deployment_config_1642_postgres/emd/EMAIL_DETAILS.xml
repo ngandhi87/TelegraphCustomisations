@@ -1,0 +1,28 @@
+<dbschema user="">
+	<table name="EMAIL_DETAILS" aka="Email details" sequence="true" pktype="sequence" priority="" group_order="" asset_types="PICTURE,STORY" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="SENDER" fieldtype="STRING" length="1000" aka="Sender" flags="FULL_INDEX" freetext_type="text" possible_values="" group="" properties="tab-order=0" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="SUBJECT" fieldtype="STRING" length="4000" aka="Subject" flags="FULL_INDEX" freetext_type="text" possible_values="" group="" properties="tab-order=0" />
+			<column name="BODY" fieldtype="CLOB" length="0" aka="Body" flags="FULL_INDEX" freetext_type="text" possible_values="" group="" properties="tab-order=0" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="SUBJECT" >
+				<column name="ASSET_ID" />
+				<column name="SUBJECT" />
+			</index>
+			<index name="SENDER" >
+				<column name="ASSET_ID" />
+				<column name="SENDER" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

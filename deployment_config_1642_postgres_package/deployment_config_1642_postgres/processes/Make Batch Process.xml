@@ -38,7 +38,7 @@
 				<config>
 					<datasource>default</datasource>
 					<use-at>yes</use-at>
-					<statement>SELECT '%%value:BATCH_PREFIX%%' || BATCH_ID_SEQ.nextval AS NEXT_ID FROM DUAL</statement>
+					<statement>SELECT '%%value:BATCH_PREFIX%%' || nextval('BATCH_ID_SEQ') AS NEXT_ID FROM DUAL</statement>
 					<store_name>BATCH_DO</store_name>
 					<stores_field_names>no</stores_field_names>
 					<add_to_process_item>yes</add_to_process_item>
@@ -61,8 +61,8 @@
 					-->
 					<statement>					
 						insert into chp_index_queue (creation_stamp, update_stamp, queue_name, status, item_key, index_id, priority)
-						select cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date),
-							'MM_INDEX_QUEUE', 'PENDING', asset_id, chp_index_queue_seq.nextval, 15 
+						select localtimestamp, localtimestamp,
+							'MM_INDEX_QUEUE', 'PENDING', asset_id, nextval('chp_index_queue_seq'), 15
 						FROM WORKFLOW_ITEM_ASSET 
 						WHERE WORKFLOW_ITEM_ID='@@read-from:__process-key@@' AND ASSET_ID LIKE '%PICT%'
 					</statement>

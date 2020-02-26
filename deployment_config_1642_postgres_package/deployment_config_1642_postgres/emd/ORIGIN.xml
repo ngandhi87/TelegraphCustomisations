@@ -1,0 +1,22 @@
+<dbschema user="">
+	<table name="ORIGIN" aka="Origin" sequence="true" pktype="sequence" priority="" group_order="" asset_types="PICTURE" multitabs_xml="" hidden_from_ui="true" hidden_except="">
+		<columns>
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="ORIGINAL_LIFECYCLE_STATUS" fieldtype="STRING" length="40" aka="Original Lifecycle Status" flags="HIDE_FROM_UI" freetext_type="text" possible_values="" group="" properties="tab-order=0" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="ORIGINAL_LIFECYCLE_STATUS" >
+				<column name="ASSET_ID" />
+				<column name="ORIGINAL_LIFECYCLE_STATUS" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

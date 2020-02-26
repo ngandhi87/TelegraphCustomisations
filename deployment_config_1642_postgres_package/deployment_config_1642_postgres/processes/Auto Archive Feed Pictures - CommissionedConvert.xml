@@ -51,8 +51,7 @@
                         - Loaded on 25 days ago
                     -->
                     <criteria>upper(asset.lifecycle_status) = 'FEED' and asset.asset_id = picture.asset_id and
-                        picture.feed_name in(%%value:FEED_NAME%%) and picture.creation_stamp &lt; trunc(sysdate) -
-                        %%value:DAYS_AFTER_LOADED:25%%
+                        picture.feed_name in(%%value:FEED_NAME%%) and picture.creation_stamp &lt; (localtimestamp - interval '%%value:DAYS_AFTER_LOADED:25%%' day)
                     </criteria>
                 </config>
             </module>

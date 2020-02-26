@@ -103,7 +103,9 @@ Note3 - unconfigured folders will still be processed but the ownership will be l
 			
 			<module ref="TransactionStart">
 				<class>com.picdar.process2.Core.TransactionStart</class>
-				<config/>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
 			</module>
 
 			<module ref="DataObjectLoader">

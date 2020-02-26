@@ -14,9 +14,9 @@
 						WHERE a.ASSET_ID = u.ASSET_ID 
 							AND p.ASSET_ID = u.ASSET_ID
 							AND UPPER(a.lifecycle_status) IN ('CREATED','FEED','PARKED','ARCHIVE','DELETED')
-							AND u.UPDATE_STAMP &lt; cast(current_timestamp at time zone dbtimezone as date) - %%value:DAYS_OLD:30%%
+							AND u.UPDATE_STAMP &lt; (localtimestamp - interval '%%value:DAYS_OLD:30%%' day)
 							AND %%value:criteria%%
-							AND ROWNUM &lt;= %%value:LIMIT:1000%%
+							LIMIT %%value:LIMIT:1000%%
 					</statement>
 
 				</config>
@@ -50,8 +50,8 @@
 					<!-- put affected asset into index queue -->
 					<statement>					
 						insert into chp_index_queue (creation_stamp, update_stamp, queue_name, status, item_key, index_id, priority)
-						select cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date),
-							'MM_INDEX_QUEUE', 'PENDING', asset_id, chp_index_queue_seq.nextval, 30 
+						select localtimestamp, localtimestamp,
+							'MM_INDEX_QUEUE', 'PENDING', asset_id, nextval('chp_index_queue_seq'), 30
 							from DELETED_USAGES 
 							where PROCESS_NAME = '%%value:NAME%%'
 					</statement>

@@ -72,7 +72,8 @@ Note3 - unconfigured folders will still be processed but the ownership will be l
 				<config>
 					<datasource>default</datasource>
 					<use-at>true</use-at>
-					<statement><![CDATA[ SELECT ASSET_ID, NODE_ID from ASSET_CATEGORY where node_id in ( select node_id from hard_categories where parent_id = '%%value:node_id%%' ) and ROWNUM < %%value:batch%% ]]></statement>
+					<statement><![CDATA[ SELECT ASSET_ID, NODE_ID from ASSET_CATEGORY where node_id in ( select node_id from hard_categories
+					where parent_id = '%%value:node_id%%' ) LIMIT %%value:batch%% ]]></statement>
 					<store_name>NODES</store_name>
 					<stores_field_names>no</stores_field_names>
 					<add_to_process_item>yes</add_to_process_item>
@@ -285,9 +286,9 @@ Note3 - unconfigured folders will still be processed but the ownership will be l
 				<config>
 					<datasource>default</datasource>
 					<use-at>true</use-at>
-					<statement><![CDATA[ DELETE from asset_category where NODE_ID='@@read-from:FIELD.NODE_ID@@' and ASSET_ID='@@read-from:FIELD.ASSET_ID@@' AND ROWNUM < 2]]></statement>
-					<statement><![CDATA[ UPDATE HARD_CATEGORIES SET TIME_STAMP = cast(current_timestamp at time zone dbtimezone as date) WHERE NODE_ID='@@read-from:FIELD.NODE_ID@@']]></statement>
-					<statement><![CDATA[ update MM_AUDIT set DATE_MODIFIED=cast(current_timestamp at time zone dbtimezone as date) where audit_id in('ASSET_CATEGORY','HARD_CATEGORIES')]]></statement>
+					<statement><![CDATA[ DELETE from asset_category where NODE_ID='@@read-from:FIELD.NODE_ID@@' and ASSET_ID='@@read-from:FIELD.ASSET_ID@@' LIMIT 2]]></statement>
+					<statement><![CDATA[ UPDATE HARD_CATEGORIES SET TIME_STAMP = localtimestamp WHERE NODE_ID='@@read-from:FIELD.NODE_ID@@']]></statement>
+					<statement><![CDATA[ update MM_AUDIT set DATE_MODIFIED=localtimestamp where audit_id in('ASSET_CATEGORY','HARD_CATEGORIES')]]></statement>
 					<object-source>ONE_NODE</object-source>
 				</config>
 			</module>

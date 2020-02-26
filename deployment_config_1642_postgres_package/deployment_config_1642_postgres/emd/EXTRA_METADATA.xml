@@ -1,0 +1,32 @@
+<dbschema user="">
+	<table name="EXTRA_METADATA" aka="Extras" sequence="true" pktype="sequence" priority="" group_order="" asset_types="PICTURE" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="ORIGINAL_JOB_NUMBER" fieldtype="STRING" length="100" aka="Original Job Number" flags="FULL_INDEX" freetext_type="text" possible_values="" order="1" group="" properties="tab-order=1" />
+			<column name="ORIGINAL_FEED_NAME" fieldtype="STRING" length="100" aka="Original Feed Name" flags="FULL_INDEX" freetext_type="text" possible_values="" order="2" group="" properties="tab-order=2" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="ORIGINAL_OWNER" fieldtype="STRING" length="50" aka="Original Ownership" flags="FULL_INDEX" freetext_type="text" possible_values="" group="" properties="tab-order=0" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="ORIGINAL_OWNER" >
+				<column name="ASSET_ID" />
+				<column name="ORIGINAL_OWNER" />
+			</index>
+			<index name="ORIGINAL_JOB_NUMBER" >
+				<column name="ASSET_ID" />
+				<column name="ORIGINAL_JOB_NUMBER" />
+			</index>
+			<index name="ORIGINAL_FEED_NAME" >
+				<column name="ASSET_ID" />
+				<column name="ORIGINAL_FEED_NAME" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

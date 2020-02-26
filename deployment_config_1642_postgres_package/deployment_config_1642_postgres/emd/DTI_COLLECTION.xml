@@ -1,0 +1,67 @@
+<dbschema user="">
+	<table name="DTI_COLLECTION" aka="DTI Collection Info" sequence="true" pktype="sequence" priority="" group_order="" asset_types="COMPOSITE" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="CAT_CODE" fieldtype="STRING" length="100" aka="Cat code" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="DTI_CHARACTERS" fieldtype="STRING" length="100" aka="Characters" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="DTI_ID" fieldtype="STRING" length="100" aka="DTI ID" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="SUBCATEGORY" fieldtype="STRING" length="100" aka="Sub category" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="COMMISSION_NAME" fieldtype="STRING" length="256" aka="Commission name" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="SENT_DESK" fieldtype="STRING" length="100" aka="DTI Desk" freetext_type="text" possible_values="" group="DTI content" properties="tab-order=0, listsource=DTIStoryDesk" />
+			<column name="USERNAME" fieldtype="STRING" length="100" aka="User name" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="SUGGESTED_PAGE" fieldtype="STRING" length="100" aka="Suggested page" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="DTI_ORIGIN" fieldtype="STRING" length="100" aka="DTI origin" freetext_type="text" possible_values="" group="DTI collection info" properties="tab-order=0" />
+			<column name="BATCH_FILE_NAME" fieldtype="STRING" length="100" aka="Batch file name" freetext_type="text" possible_values="" group="DTI content" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="CAT_CODE" >
+				<column name="ASSET_ID" />
+				<column name="CAT_CODE" />
+			</index>
+			<index name="DTI_ORIGIN" >
+				<column name="ASSET_ID" />
+				<column name="DTI_ORIGIN" />
+			</index>
+			<index name="SUBCATEGORY" >
+				<column name="ASSET_ID" />
+				<column name="SUBCATEGORY" />
+			</index>
+			<index name="DTI_CHARACTERS" >
+				<column name="ASSET_ID" />
+				<column name="DTI_CHARACTERS" />
+			</index>
+			<index name="COMMISSION_NAME" >
+				<column name="ASSET_ID" />
+				<column name="COMMISSION_NAME" />
+			</index>
+			<index name="SUGGESTED_PAGE" >
+				<column name="ASSET_ID" />
+				<column name="SUGGESTED_PAGE" />
+			</index>
+			<index name="DTI_ID" >
+				<column name="ASSET_ID" />
+				<column name="DTI_ID" />
+			</index>
+			<index name="USERNAME" >
+				<column name="ASSET_ID" />
+				<column name="USERNAME" />
+			</index>
+			<index name="BATCH_FILE_NAME" >
+				<column name="ASSET_ID" />
+				<column name="BATCH_FILE_NAME" />
+			</index>
+			<index name="SENT_DESK" >
+				<column name="ASSET_ID" />
+				<column name="SENT_DESK" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

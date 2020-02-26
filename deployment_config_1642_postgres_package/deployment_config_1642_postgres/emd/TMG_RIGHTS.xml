@@ -1,0 +1,28 @@
+<dbschema user="">
+	<table name="TMG_RIGHTS" aka="Rights" sequence="true" pktype="sequence" flags="FIELD_PULLTHROUGH, READONLY" priority="" group_order="" asset_types="PICTURE" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="OVERRIDDEN_AUDIT" fieldtype="STRING" length="4000" aka="Overridden Audit" freetext_type="" possible_values="" order="2" group="" properties="tab-order=2" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="COSTGROUPA" fieldtype="STRING" length="100" aka="Cost Indicator" flags="LIST" list_options="values:No Cost,May Incur Cost,Will Incur Cost,Unassigned" freetext_type="keyword" possible_values="No Cost,May Incur Cost,Will Incur Cost,Unassigned" group="" properties="tab-order=0" />
+			<column name="COST_OVERRIDDEN" fieldtype="ICON" length="1" default="0" aka="Cost Indicator Overridden" flags="BOOLEAN" freetext_type="text" possible_values="" order="1" group="" properties="icon-id=CostIndicatorOverride, tab-order=1" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="COSTGROUPA" >
+				<column name="ASSET_ID" />
+				<column name="COSTGROUPA" />
+			</index>
+			<index name="COST_OVERRIDDEN" >
+				<column name="ASSET_ID" />
+				<column name="COST_OVERRIDDEN" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

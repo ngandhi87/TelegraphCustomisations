@@ -1,0 +1,101 @@
+<media-mogul-configuration>
+    <config groupname="AssetLoader">
+        <properties>
+            <CLASS>Feeds Ingestion - eLoader Pictures</CLASS>
+            <TYPE>Feeds Ingestion</TYPE>
+            <NAME>hubpicdsk2 Ingestion</NAME>
+            <APP_GROUP>SYSGROUP2</APP_GROUP>
+            <AVOIDS_ABORTION>y</AVOIDS_ABORTION>
+            <TEMPLATE>eLoaderPictureIngestionTemplate</TEMPLATE>
+            <EMAIL_ROOT_PATH>/hub-assets/loader/email/eloader</EMAIL_ROOT_PATH>
+            <AA_feed description="Choose feed name for profile" linkedProperty="queue-short-name" type="list">
+                <ephoto>EPhoto</ephoto>
+                <ephotosunday>EPhotoSunday</ephotosunday>
+                <ephotocity>EPhotoCity</ephotocity>
+                <ephotomypic>EPhotoMyPic</ephotomypic>
+                <ephotocreate>EPhotoCreate</ephotocreate>
+                <ephotoadget>EPhotoAdGet</ephotoadget>
+                <ephotomarketing>EPhotoMarketing</ephotomarketing>
+                <hubpicdsk2>hubpicdsk2</hubpicdsk2>
+            </AA_feed>
+            <queue-short-name description="ELoader Queue Name">hubpicdsk2</queue-short-name>
+            <sort-by-priority description="Sort Queue Items by Priority" type="checkbox">Y</sort-by-priority>
+            <package-parent-directory description="Email Package Parent Directory">%%value:EMAIL_ROOT_PATH%%/spool/%%value:queue-short-name%%</package-parent-directory>
+            <ignored-emails-directory description="Ignored Emails Directory">%%value:EMAIL_ROOT_PATH%%/ignored/%%value:queue-short-name%%</ignored-emails-directory>
+            <partially-failed-emails-directory description="Partially Unpacked Emails Directory">%%value:EMAIL_ROOT_PATH%%/partreject/%%value:queue-short-name%%</partially-failed-emails-directory>
+            <move-failed-emails description="Move Failed Emails" type="checkbox">Y</move-failed-emails>
+            <failed-emails-directory description="Failed Emails and Package Directory">%%value:EMAIL_ROOT_PATH%%/rejects/%%value:queue-short-name%%</failed-emails-directory>
+            <type-restriction type="instruction">Must be 'extract' or 'ignore' if used</type-restriction>
+            <content-type-action description="Email Content Type restriction">ignore</content-type-action>
+            <comma-sep type="instruction">Comma-separated</comma-sep>
+            <content-type-values description="Email Content Type values">application/applefile</content-type-values>
+            <discard-duplicate-attachments description="Discard Duplicate Email Attachments" type="checkbox">N</discard-duplicate-attachments>
+            <concatenate-message-bodies description="Concatenate Email Message Bodies" type="checkbox">N</concatenate-message-bodies>
+            <remove-signatures description="Remove Email Signatures" type="checkbox">N</remove-signatures>
+            <get-metadata-from-message description="Search for Metadata in Message Body" type="checkbox">N</get-metadata-from-message>
+            <comma-sep-meta type="instruction">Comma-separated</comma-sep-meta>
+            <metadata-names description="Metadata Names">Subject,From</metadata-names>
+            <output-package-metadata description="Output Metadata File in Pack for Debugging" type="checkbox">N</output-package-metadata>
+            <filter-archive-types description="Filter Archive types" type="checkbox">Y</filter-archive-types>
+            <archive-extraction-timeout description="Timeout in seconds for attempted archive extraction">10</archive-extraction-timeout>
+            <asset-store-set description="Comma-separated list of types to create for each asset">production,preview,thumbnail,stamp</asset-store-set>
+            <rejectsDir description="Directory to place rejected packages">%%value:EMAIL_ROOT_PATH%%/rejects/%%value:queue-short-name%%</rejectsDir>
+            <loadedDir description="Directory to place successfully loaded packages">%%value:EMAIL_ROOT_PATH%%/loaded/%%value:queue-short-name%%</loadedDir>
+            <partialRejectsDir description="Directory to place partially loaded packages">%%value:EMAIL_ROOT_PATH%%/partreject/%%value:queue-short-name%%</partialRejectsDir>
+            <allowed-types description="List of allowed asset types">JPEG,TIFF,BMP,PNG,Photoshop,EPS,Adobe Illustrator,GIF,IPTC,PCX,PhotoYCC,Scitex</allowed-types>
+            <mmte description="Pool name of the MMTE to use to identify and store assets">MMTE</mmte>
+            <OWNER description="Owner user group">Photo</OWNER>
+            <TEMPLATE_PROPERTIES>
+                <!-- Process Properties -->
+                <queue-name>eLoader.%%value:queue-short-name%%</queue-name>
+                <!-- Set the datasource -->
+                <datasource>default</datasource>
+                <!-- Map metadata from the image to the picture record -->
+                <!-- Set the iptc mappings -->
+                <iptc-mappings>
+                    <![CDATA[						<iptc-tag name="Caption">CAPTION</iptc-tag>						<iptc-tag name="Headline">HEADLINE</iptc-tag>						<iptc-tag name="Byline">PHOTOGRAPHER</iptc-tag>						<iptc-tag name="Byline Title">PHOTOGRAPHER_TITLE</iptc-tag>						<iptc-tag name="Source">COPYRIGHT</iptc-tag>						<iptc-tag name="Source">SOURCE</iptc-tag>						<iptc-tag name="Credit">PROVIDER</iptc-tag>						<iptc-tag name="Image Supplier Image Id">IMAGE_SUPPLIER_IMAGE_ID</iptc-tag>						<iptc-tag name="Getty Asset ID">GETTY_ASSET_ID</iptc-tag>						<iptc-tag name="Object Name">IPTC_TITLE</iptc-tag>						<iptc-tag name="XMP Title">XMP_TITLE</iptc-tag>						<iptc-tag name="Special Instructions">IPTC_INSTRUCTIONS</iptc-tag>						<iptc-tag name="Special Instructions">INSTRUCTIONS</iptc-tag>						<iptc-tag name="Copyright Notice">COPYRIGHT_NOTICE</iptc-tag>						<iptc-tag name="Category">CAT_CODE</iptc-tag>						<iptc-tag name="Caption Writer">CAPTION_WRITER</iptc-tag>						<iptc-tag name="Caption Writer">IPTC_CAPTION_WRITER</iptc-tag>						<iptc-tag name="Supplemental Category">KEYWORDS</iptc-tag>						<iptc-tag name="Subject Reference">KEYWORDS</iptc-tag>						<iptc-tag name="Object Attribute Reference">IPTC_OBJ_ATT_REF</iptc-tag>						<iptc-tag name="Keywords">KEYWORDS</iptc-tag>						<iptc-tag name="Category">KEYWORDS</iptc-tag>						<iptc-tag name="Original Transmission Ref">JOB_NUMBER</iptc-tag>						<iptc-tag name="Original Transmission Ref">EXTERNAL_REF</iptc-tag>						<iptc-tag name="Original Transmission Ref">IPTC_REFERENCE</iptc-tag>						<iptc-tag name="Sub Location">IPTC_LOCATION</iptc-tag>						<iptc-tag name="Sub Location">LOCATION</iptc-tag>						<iptc-tag name="City">IPTC_CITY</iptc-tag>						<iptc-tag name="Province-State">IPTC_STATE</iptc-tag>						<iptc-tag name="Country Name">IPTC_COUNTRY</iptc-tag>						<iptc-tag name="Country Code">IPTC_COUNTRY_CODE</iptc-tag>						<iptc-tag format="dd/MM/yy" name="Date Sent" type="date">DATE_RECEIVED</iptc-tag>						<iptc-tag format="dd/MM/yy" name="Date Created" type="date">PICTURE_DATE</iptc-tag>						<iptc-tag format="HH:mm:ss" name="Time Created" type="date">PICTURE_TIME</iptc-tag>						<iptc-tag format="dd/MM/yy HH:mm:ss" name="Date and Time Of Original" type="date">ORIGINAL_DATE</iptc-tag>					]]>
+                </iptc-mappings>
+                <!-- Set fields to append to -->
+                <append-attributes>KEYWORDS,CAPTION</append-attributes>
+                <!-- Process Schedule Properties. Defaults to Continuous, every 60 minutes -->
+                <!-- Schedule type can be manual, continuous, or scheduled -->
+                <schedule-type>continuous</schedule-type>
+                <!-- For continuous, we need to specify the interval (a number)
+				     and the interval type (hour, minute, or second -->
+                <schedule-interval-count>30</schedule-interval-count>
+                <schedule-interval-type>second</schedule-interval-type>
+                <!-- If you use scheduled running, the following values are needed.
+				     They're the same values as cron, except that * is not supported,
+				     so you have to put in the full range.
+				-->
+                <!--
+					<schedule-timed-months>1-12/schedule-timed-months>
+					<schedule-timed-dates>1-31</schedule-timed-dates>
+					<schedule-timed-weekdays>1-7</schedule-timed-weekdays>
+					<schedule-timed-hours>0-23</schedule-timed-hours>
+					<schedule-timed-minutes>0</schedule-timed-minutes>
+				-->
+            </TEMPLATE_PROPERTIES>
+            <schedule-type>continuous</schedule-type>
+            <schedule-interval-count>1</schedule-interval-count>
+            <schedule-interval-type>minute</schedule-interval-type>
+            <schedule-timed-minutes/>
+            <schedule-timed-hours/>
+            <schedule-timed-weekdays/>
+            <schedule-timed-dates/>
+            <schedule-timed-months/>
+            <NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+            <BLOCKED>n</BLOCKED>
+            <START_URL/>
+        </properties>
+        <schedule>
+            <timedschedule>
+                <minutes/>
+                <hours/>
+                <weekdays/>
+                <dates/>
+                <months/>
+            </timedschedule>
+        </schedule>
+    </config>
+</media-mogul-configuration>

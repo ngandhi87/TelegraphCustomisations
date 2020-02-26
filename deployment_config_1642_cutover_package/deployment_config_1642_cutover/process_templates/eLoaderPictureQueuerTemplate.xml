@@ -1,0 +1,64 @@
+<media-mogul-configuration>
+    <config groupname="eLoaderPictureQueuerTemplate">
+		<modules>
+			<module ref="EmailRetrieval">
+				<class>com.picdar.process2.Acquisition.EmailRetriever.EmailRetriever</class>
+				<config>
+					<itemsPerIterationLimit>0</itemsPerIterationLimit>
+					<!-- 0 = unlimited -->
+					<failoverResetTime>3600</failoverResetTime>
+					<maxMessageSize>%%value:maxMessageSize%%</maxMessageSize>
+					<badMessageResetTime>3600</badMessageResetTime>
+					<deleteBadMessages>false</deleteBadMessages>
+					<deleteOversizedMessages>false</deleteOversizedMessages>
+					<timeout>%%value:timeout%%</timeout>
+					<queueObjectName>%%value:queueObjectName%%</queueObjectName>
+					<writeFailureAlarmThreshold>10</writeFailureAlarmThreshold>
+					<badMessageWarningThreshold>10</badMessageWarningThreshold>
+					<badMessageCriticalThreshold>50</badMessageCriticalThreshold>
+					<spoolDirectory>%%value:spoolDirectory%%</spoolDirectory>
+					<!-- Mailservers - at least one is required here -->
+					<!-- -->
+					<mailserver>%%value:mailserverconfig%%</mailserver>
+					<!-- -->
+					<mailserver>
+						<identifier>Example first fail-over connection - POP3</identifier>
+						<protocol>pop3</protocol>
+						<host>mail-server</host>
+						<account>mail-user</account>
+						<password>mail-password</password>
+					</mailserver>
+				</config>
+			</module>
+			<module ref="MetaDataProcessor">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<add-attributes>
+						<!-- make this a template and this value becomes the value of the feed -->
+						<add-attribute name="feed_name">%%value:feedname%%</add-attribute>
+					</add-attributes>
+					<object-name>%%value:queueObjectName%%</object-name>
+				</config>
+			</module>
+			<module ref="QueueWriter">
+				<class>com.picdar.process2.Acquisition.QueueWriter.QueueWriter</class>
+				<config>
+					<queue-name>eLoader.%%value:feedname%%</queue-name>
+					<user-name>eLoader</user-name>
+					<priority>100</priority>
+					<store-data>%%value:queueObjectName%%</store-data>
+					<add-queue-item-info>feed_name</add-queue-item-info>
+					<add-queue-item-info>format</add-queue-item-info>
+					<add-queue-item-info>format</add-queue-item-info>
+					<add-queue-item-info>identifier</add-queue-item-info>
+					<add-queue-item-info>protocol</add-queue-item-info>
+					<add-queue-item-info>server</add-queue-item-info>
+					<add-queue-item-info>account</add-queue-item-info>
+					<add-queue-item-info>path</add-queue-item-info>
+					<additional-attributes>feed_name</additional-attributes>
+				</config>
+			</module>
+		</modules>
+        %%template:ProcessSchedule%%
+	</config>
+</media-mogul-configuration>

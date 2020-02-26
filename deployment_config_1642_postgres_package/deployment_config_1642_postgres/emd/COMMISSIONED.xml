@@ -1,0 +1,22 @@
+<dbschema user="">
+	<table name="COMMISSIONED" aka="Commissioned" sequence="true" pktype="sequence" priority="" group_order="" asset_types="WORKFLOW_ITEM" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="COMMISSION_ID" fieldtype="STRING" length="15" aka="Job Number" nonull="Y" freetext_type="text" possible_values="" group="" properties="tab-order=0" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="COMMISSION_ID" >
+				<column name="ASSET_ID" />
+				<column name="COMMISSION_ID" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

@@ -1,0 +1,90 @@
+<media-mogul-configuration>
+	<config groupname="Process">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Policy handler</TYPE>
+			<NAME description="Process Name">Deferred Policy Creator</NAME>
+
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+<START_URL>http://positron:8080/SystemManagement/ProcessStarter</START_URL>
+
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+		<schedule-timed-minutes/><schedule-timed-hours/><schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/><BLOCKED>n</BLOCKED></properties>
+
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>30</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+		</schedule>
+
+		<modules>
+			<module ref="Read asset IDs from queue">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>Policy.Defer</queue-name>
+					<item-location>database</item-location>
+					<store-data>
+						<info>PolicyJSONString</info>
+					</store-data>
+
+					<requeue-ignored-items>true</requeue-ignored-items>
+				</config>
+			</module>
+
+			<module ref="Parse JSON array into DataObjectArray">
+				<class>com.picdar.process2.Processing.JSONParser.JSON2Policy</class>
+				<config>
+					<read-name>PolicyJSONString</read-name>
+					<type>MM_POLICY</type>
+					<datasource>default</datasource>
+					<store-name>Policies</store-name>
+				</config>
+			</module>
+
+			<module ref="Read in asset">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>metadata</do-store-name>
+					<load-policies>true</load-policies>
+				</config>
+			</module>
+
+			<module ref="Add policies to record">
+				<class>com.picdar.process2.Repository.Security.AddPoliciesToObject</class>
+				<config>
+					<object-read-name>metadata</object-read-name>
+					<policies-read-name>Policies</policies-read-name>
+				</config>
+			</module>
+
+			<module ref="Transaction start">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+			</module>
+
+			<module ref="Update asset in Database">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<object-name>metadata</object-name>
+					<match-existing-records>true</match-existing-records>
+					<match-on-primary-key>true</match-on-primary-key>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>true</reject-unmatched-records>
+					<ignore-locked-records>true</ignore-locked-records>
+					<locked-record-action>ignore</locked-record-action>
+				</config>
+			</module>
+
+			<module ref="Transaction end">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+
+		</modules>
+	</config>
+</media-mogul-configuration>

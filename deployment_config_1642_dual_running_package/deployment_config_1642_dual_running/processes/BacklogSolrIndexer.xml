@@ -1,0 +1,44 @@
+<media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS>Indexing</CLASS>
+			<TYPE>IndexTask</TYPE>
+			<NAME>Solr Backlog Index Task</NAME>
+			<APP_GROUP description="Application group">CHP 1642</APP_GROUP>
+			<NORMALLY_RUNNING>n</NORMALLY_RUNNING>
+			<log-report-data>false</log-report-data>
+		</properties>
+		<schedule>
+			<scheduletype>continuous</scheduletype>
+			<runinterval>
+				<count>15</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1,6,10</dates>
+				<weekdays>1-5</weekdays>
+				<hours>0,4,8,12,16,20</hours>
+				<minutes>0,15,30,45</minutes>
+			</timedschedule>
+		</schedule>
+		<modules>
+			<module ref="AssetIndexer">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>BacklogQueueIndexManager</index-manager-resource>
+					<task-list>index</task-list>
+					<log-report-data>false</log-report-data>
+					<task-config>
+						<read-pool-size>1</read-pool-size>
+						<pool-size>6</pool-size>
+						<!-- set the following flag to true to avoid the unindex across all indexes before doing the index action
+							 This will speed up initial indexing when we know the assets are not already indexed anywhere.
+							 Should be left as false for other re-indexes when the asset may already be indexed. -->
+						<skip-unindex>false</skip-unindex>
+					</task-config>
+				</config>
+			</module>
+		</modules>
+	</config>
+</media-mogul-configuration>

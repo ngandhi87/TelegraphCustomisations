@@ -1,0 +1,87 @@
+<media-mogul-configuration>	
+	<config groupname="Folder Purger">
+		<properties>
+			<CLASS>Maintenance</CLASS>
+			<TYPE>Purger</TYPE>
+			<NAME>Purge Loader Folder</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+		<schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/></properties>
+
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>30</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months/>
+				<dates/>
+        		<weekdays/>
+        		<hours>01</hours>
+        		<minutes>30</minutes>
+			</timedschedule>
+    	</schedule>
+
+    	<modules>
+			<module ref="Purge loader directories">
+				<class>com.picdar.process2.Acquisition.FolderPurger.FolderPurgerModule</class>
+				<config>
+          			<testOnly>false</testOnly>
+          			<resourceForkEntries>.AppleDouble,.rsrc,.HSResource,.HSancillary</resourceForkEntries>
+          			<categories>
+            			<category name="Reject Folders">
+              				<config>
+                				<purgeDelay>14 day</purgeDelay>
+						<paths>
+	 						<path>/hub-assets/loader/reuters/worldservice/rejected</path>
+						</paths>
+<!-- NB: don't enable directory purging for the eloader or they'll break -->
+                				<deleteDirectives>normalfiles</deleteDirectives>
+                				<ignoreDirsPattern/>
+                				<ignoreFilePattern/>
+					</config>
+				</category>
+<!-- NB: don't enable directory purging for the eloader or they'll break -->
+            			<category name="Eloader Reject Folders">
+              				<config>
+                				<purgeDelay>14 day</purgeDelay>
+						<paths>
+	 						<path>/hub-assets/loader/email/eloader/rejects</path>
+	 						<path>/hub-assets/loader/email/eloader/partreject</path>
+						</paths>
+                				<deleteDirectives>normalfiles</deleteDirectives>
+                				<ignoreDirsPattern/>
+                				<ignoreFilePattern/>
+					</config>
+				</category>
+            			<category name="Intray Folders">
+              				<config>
+                				<purgeDelay>2 day</purgeDelay>
+						<paths>
+	 						<path>/hub-assets/loader/images/Arts_Scans</path>
+	 						<path>/hub-assets/loader/images/Commissioned_Scans</path>
+	 						<path>/hub-assets/loader/images/Create_Scans</path>
+	 						<path>/hub-assets/loader/images/Daily_Scans</path>
+	 						<path>/hub-assets/loader/images/Fashion_Scans</path>
+	 						<path>/hub-assets/loader/images/Features_Scans</path>
+	 						<path>/hub-assets/loader/images/News_Scans</path>
+	 						<path>/hub-assets/loader/images/Sport_Scans</path>
+	 						<path>/hub-assets/loader/images/Sunday_Scans</path>
+	 						<path>/hub-assets/loader/images/Travel_Scans</path>
+	 						<path>/hub-assets/loader/reuters/worldservice/intray</path>
+	 						<path>/hub-assets/loader/reuters/breakingviews/intray</path>
+	 						<path>/hub-assets/loader/reuters/pictures/intray</path>
+						</paths>
+                				<deleteDirectives>directories,normalfiles</deleteDirectives>
+                				<ignoreDirsPattern/>
+                				<ignoreFilePattern/>
+					</config>
+				</category>
+				</categories>
+				</config>
+			</module>
+		</modules>
+	</config>
+</media-mogul-configuration>

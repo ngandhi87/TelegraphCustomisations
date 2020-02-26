@@ -1,0 +1,4 @@
+enable_allow_imports true
+set_verbose true
+set_folder ./deployment_config_1642_postgres
+import_config emd

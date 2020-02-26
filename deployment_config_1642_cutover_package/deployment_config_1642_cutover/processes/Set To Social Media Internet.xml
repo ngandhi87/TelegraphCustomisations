@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><media-mogul-configuration>
+
+<description>
+This process will set assets as Social Media Internet.
+</description>
+
+	<config groupname="Export">
+		<properties>
+			<CLASS>Workflow</CLASS>
+			<TYPE>Lifecycle</TYPE>
+			<NAME>Set To Social Media Internet</NAME>
+			<APP_GROUP description="Application group">SYSGROUP_MANUAL</APP_GROUP>
+			<OWNER description="Name of ownership group">Social Media Internet</OWNER>
+			<WARNING_TYPE description="Type of asset notice to create/update">Information</WARNING_TYPE>
+			<WARNING_MESSAGE description="Message of asset notice to create/update">CAUTION : Image sourced from social media or the internet.  Rights / copyright need to be verified.  Please check with the picture desk before publishing this image.</WARNING_MESSAGE>
+			<NORMALLY_RUNNING>n</NORMALLY_RUNNING>
+		<BLOCKED>n</BLOCKED></properties>
+			
+		<schedule>
+			<scheduletype>manual</scheduletype>
+			<runinterval>
+				<count>1</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>0-23</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+
+		<modules>
+			<module ref="Finds the queue entries to process">
+				<class>com.picdar.process2.Acquisition.QueueChecker.QueueChecker</class>
+				<config>
+					<queue-name>SET_TO_SOCIAL_MEDIA</queue-name>
+					<item-location>Queue</item-location>
+					<batch-size>1</batch-size>
+					<limit>0</limit>
+					<fail-rejected>yes</fail-rejected>
+					<remove-ignored-items>no</remove-ignored-items>
+					<requeue-ignored-items>yes</requeue-ignored-items>
+				</config>
+			</module>
+
+			<module ref="Find the assets in the workflow job and iterate over them">
+				<class>com.picdar.process2.Workflow.WorkflowJobProcessor</class>
+				<config>
+					<asset-location>Database</asset-location>
+					<lock-jobs-when-processing>yes</lock-jobs-when-processing>
+					<values-to-copy>
+						<value-to-copy>
+							<from>queue-items</from>
+							<to>queue-items</to>
+						</value-to-copy>
+					</values-to-copy>
+					<error-state>Error</error-state>
+					<success-state>Completed</success-state>
+				</config>
+			</module>
+
+			<module ref="Read the Picture record from the CHP">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>IMAGE_DO</do-store-name>
+				</config>
+			</module>
+<!--			
+			<module ref="Debug-1">
+                <class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+			    <config>
+					<message>Inspecting Before Changes</message>
+			    </config>
+			</module>
+-->
+			<module ref="Store original values to EMD">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<script-name>StoreOriginalMetadataWithEMD</script-name>
+					<script-properties>
+						<dataobject>IMAGE_DO</dataobject>
+						<emd-kind>EXTRA_METADATA</emd-kind>
+						<sourece-field1>OWNER_ID</sourece-field1>
+						<dest-field1>ORIGINAL_OWNER</dest-field1>
+						<sourece-field2>JOB_NUMBER</sourece-field2>
+						<dest-field2>ORIGINAL_JOB_NUMBER</dest-field2>
+						<sourece-field3>FEED_NAME</sourece-field3>
+						<dest-field3>ORIGINAL_FEED_NAME</dest-field3>
+					</script-properties>
+				</config>
+			</module>
+			
+			<module ref="Store the workflow creator in IMAGE_DO">
+				<class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+				<config>
+					<object-name>queue-items</object-name>
+					<metadata-processors>
+						<processor class="com.picdar.process2.Processing.MetaDataProcessor.TransferObjectValues">
+							<properties>
+								<source-field>USER_NAME</source-field>
+								<transfer-type>Simple</transfer-type>
+								<create-target-fields>true</create-target-fields>
+								<target_1>IMAGE_DO.WORKFLOW_CREATOR</target_1>
+							</properties>
+						</processor>
+					</metadata-processors>
+				</config>
+			</module>
+
+ 			<!-- Start the transaction. -->
+			<module ref="TransactionStart">
+				<class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+			</module>
+
+			<module ref="Add/Update warning">
+				<class>com.picdar.process2.Processing.ScriptProcessor.ScriptProcessor</class>
+				<config>
+					<script-name>AddUpdateWarning</script-name>
+					<script-properties>
+						<dataobject>IMAGE_DO</dataobject>
+						<warning-type>%%value:WARNING_TYPE%%</warning-type>
+						<warning-message>%%value:WARNING_MESSAGE%%</warning-message>
+					</script-properties>
+				</config>
+			</module>
+
+			<module ref="Read the Asset record from the CHP">
+				<class>com.picdar.process2.Repository.DataReader.J2EE.DataReaderJ2EE</class>
+				<config>
+					<datasource>default</datasource>
+					<do-store-name>ASSET_DO</do-store-name>
+					<type>ASSET</type>
+				</config>
+			</module>
+
+			<!-- Save the asset. -->
+			<module ref="DataObjectLoader">
+				<class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+				<config>
+					<object-name>IMAGE_DO</object-name>
+					<match-existing-records>true</match-existing-records>
+					<match-by-primary-key>true</match-by-primary-key>
+					<update-matched-records>true</update-matched-records>
+					<reject-unmatched-records>true</reject-unmatched-records>
+					<reject-matched-records>false</reject-matched-records>
+					<types-to-match>PICTURE,STORY,DOCUMENT,MEDIA,PAGE,COMPOSITE</types-to-match>
+				</config>
+			</module>
+
+			<module ref="Set ownership">
+				<class>com.picdar.process2.Repository.Security.SetOwnershipAndPolicies</class>
+				<config>
+					<readName>ASSET_DO</readName>
+					<default>
+						<owner role="%%value:OWNER%%"/>
+					</default>
+				</config>
+			</module>			
+			
+			<!-- End the transaction. -->
+			<module ref="TransactionEnd">
+				<class>com.picdar.process2.Core.TransactionEnd</class>
+				<config/>
+			</module>
+<!--
+			<module ref="Debug-2">
+                <class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+			    <config>
+					<message>Inspecting After Changes</message>
+			    </config>
+			</module>
+-->
+			<module ref="Reset workflow icon on asset">
+				<class>com.picdar.process2.Repository.JDBCStatement.ProcessItemJDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<use-at>yes</use-at>
+					<stores_field_names>no</stores_field_names>
+					<add_to_process_item>no</add_to_process_item>
+					<statement>update workflow_item_asset set icon_id = null where asset_id = '@@read-from:IMAGE_DO:_KEY_@@' and workflow_item_id = '@@read-from:QUEUE-ITEMS:ITEM_KEY@@'</statement>
+				</config>
+			</module>
+			
+		</modules>
+	</config>
+</media-mogul-configuration>

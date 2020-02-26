@@ -1,0 +1,51 @@
+<media-mogul-configuration>
+	<config groupname="AssetDeleter">
+		<properties>
+			<CLASS hidden="true">Lifecycle Management</CLASS>
+			<TYPE hidden="true">Deleter</TYPE>
+			<NAME description="Process name">Composite Deleter</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<TEMPLATE hidden="true">PurgerTemplate</TEMPLATE>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<feed-weed hidden="true">unused</feed-weed>
+			<created-weed description="Weed period for created assets (in days)">50</created-weed>
+<TEMPLATE_PROPERTIES>
+				<BATCH_SIZE>100</BATCH_SIZE>
+
+
+				<datasource>default</datasource>
+
+				<!--
+					We want to select assets that match the following criteria:
+						- Has a lifecycle status of 'Created' or 'Feed'.
+						- The creation stamp is older than 10 days (for a feed asset) or 1 month (for a created asset).
+				-->
+				<criteria><![CDATA[
+				asset_id in (
+					select 
+						c.asset_id 
+					from 
+						composite c, asset a 
+					where 
+						c.asset_id = a.asset_id and
+						upper(a.lifecycle_status) = 'CREATED' and
+						not exists ( 
+						select 1 from usage u where a.asset_id = u.asset_id 
+						) and 
+						creation_stamp &lt; (localtimestamp - interval '%%value:created-weed%%' day))
+					]]></criteria>
+
+				<allowed_status>Created</allowed_status>
+				<!-- Not currently used. -->
+				<saved_search_name description="Selection search">WeedingRule</saved_search_name>
+
+				<schedule-type>continuous</schedule-type>
+				<schedule-interval-count>4</schedule-interval-count>
+				<schedule-interval-type>hour</schedule-interval-type>
+
+			</TEMPLATE_PROPERTIES>
+			
+		<BLOCKED>n</BLOCKED></properties>
+	</config>
+</media-mogul-configuration>

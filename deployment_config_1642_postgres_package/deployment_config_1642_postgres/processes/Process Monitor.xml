@@ -1,0 +1,123 @@
+<media-mogul-configuration>
+    <config groupname="Test">
+        <properties>
+            <CLASS>Monitors</CLASS>
+            <TYPE>Database</TYPE>
+            <NAME>Process Monitor</NAME>
+            <APP_GROUP description="Aplication group">SYSGROUP1</APP_GROUP>
+            <NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+        </properties>
+        <schedule>
+            <scheduletype>continuous</scheduletype>
+            <runinterval>
+                <count>5</count>
+                <intervalsize>minute</intervalsize>
+            </runinterval>
+            <timedschedule>
+                <hours>00</hours>
+                <minutes>01</minutes>
+                <weekdays/><dates/><months/></timedschedule>
+        </schedule>
+        <modules>
+            <!--
+                        <module ref="Create_Monitor_Table">
+                            <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                    <config>
+                                 <datasource>mediamogul</datasource>
+                                 <statement>create table mm_process_monitor(name varchar2(50),last_update date,status varchar2(20))</statement>
+                     </config>
+                    </module>
+            -->
+            <module ref="Record_Failed_Processes">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>insert into mm_process_monitor select name,last_update,'PENDING' from mm_process_info where status in ('IDLE','PROCESSING') and last_update&lt;(localtimestamp - interval '10' minute) and not exists (select * from mm_process_monitor where mm_process_monitor.name=mm_process_info.name)</statement>
+                    <statement>insert into mm_process_monitor select name,last_update,'PENDING' from mm_process_info where normally_running='1' and status in ('NOT RUNNING','ERROR') and not exists (select * from mm_process_monitor where mm_process_monitor.name=mm_process_info.name)</statement>
+                </config>
+            </module>
+            <module ref="Get_Failed_Processes">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>SELECT name,last_update from mm_process_monitor where status='PENDING'</statement>
+                    <store_name>FAILED_PROCESSES</store_name>
+                    <info_store_name>FAILED_PROCESSES_INFO</info_store_name>
+                </config>
+            </module>
+            <module ref="Mark_Processes">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>update mm_process_monitor set status='ALERTED' where status='PENDING'</statement>
+                </config>
+            </module>
+
+            <module ref="CHP DO to CHP XML">
+                <class>
+                    com.picdar.process2.Processing.DataObjects2XML.DataObjects2XML
+                </class>
+                <config>
+                    <read-name>FAILED_PROCESSES</read-name>
+                    <store-name>FAILED_PROCESSES_XML</store-name>
+                </config>
+            </module>
+
+            <!--
+                        <module ref="DataWriter">
+                            <class>com.picdar.process2.Delivery.DataWriter.DataWriter</class>
+                            <config>
+                                <filename description="PF" mode="fixed">test.xml</filename>
+                                <fileExistsMode>overwrite</fileExistsMode>
+                                <directory>/tmp</directory>
+                                <hashmapSuffix/>
+                                <target>asset</target>
+                                <storeitem>FAILED_PROCESSES_XML</storeitem>
+                            </config>
+                     </module>
+            -->
+
+            <module ref="XMLTransformer">
+                <class>com.picdar.process2.Processing.XMLTransformer.XMLTransformer</class>
+                <config>
+                    <failureiscritical>true</failureiscritical>
+                    <transform name="Process_Monitor">
+                        <readname>FAILED_PROCESSES</readname>
+                        <storename>FAILED_PROCESSES_MESSAGE</storename>
+                    </transform>
+                </config>
+            </module>
+            <!--
+                        <module ref="DataWriter">
+                            <class>com.picdar.process2.Delivery.DataWriter.DataWriter</class>
+                            <config>
+                                <filename description="PF" mode="fixed">test.xml</filename>
+                                <fileExistsMode>overwrite</fileExistsMode>
+                                <directory>/tmp</directory>
+                                <hashmapSuffix/>
+                                <target>asset</target>
+                                <storeitem>FAILED_PROCESSES_MESSAGE</storeitem>
+                            </config>
+                     </module>
+            -->
+            <module ref="EmailSender">
+                <class>com.picdar.process2.Delivery.EmailSender.SimpleMailer</class>
+                <config>
+                    <email-source-obj>FAILED_PROCESSES_MESSAGE</email-source-obj>
+
+                    <to-email>prodsupport@telegraph.co.uk</to-email>
+                    <from-email>chp-prod@telegraph.com</from-email>
+                    <subject>CHP Prod System Process Stopped</subject>
+                    <MailManager>MailManager</MailManager>
+                </config>
+            </module>
+            <module ref="Remove_Running_Processs">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>delete from mm_process_monitor where status = 'ALERTED' AND last_update &lt; (localtimestamp - interval '1' day))</statement>
+                </config>
+            </module>
+        </modules>
+    </config>
+</media-mogul-configuration>

@@ -1,0 +1,51 @@
+<media-mogul-configuration>
+	<config groupname="AssetPurger">
+		<properties>
+			<CLASS hidden="true">Lifecycle Management</CLASS>
+			<TYPE hidden="true">Purger</TYPE>
+			<NAME description="Process name">Purger</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<TEMPLATE hidden="true">PurgerTemplate</TEMPLATE>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+
+			<purge-period description="Purge period (in days)">30</purge-period>
+
+			<TEMPLATE_PROPERTIES>
+
+            <schedule-type>scheduled</schedule-type>
+            <schedule-timed-months>1-12</schedule-timed-months>
+            <schedule-timed-dates>1-31</schedule-timed-dates>
+            <schedule-timed-hours>4</schedule-timed-hours>
+            <schedule-timed-minute>0</schedule-timed-minute>
+
+            <BATCH_SIZE>100</BATCH_SIZE>
+            <BATCH_LIMIT>1000</BATCH_LIMIT>
+
+				<!--
+					We want to select assets that match the following criteria:
+						- Has a lifecycle status of 'Deleted'.
+						- The lifecycle status stamp is older than 1 month.
+						- The asset is not linked from or to ( may be located in Escenic ) and has not usage record
+				-->
+				<!--
+				Per change from Mike Sharp 29/03/2017, the cretiria of "don't have usage" is removed"  
+				-->
+				<criteria>
+					<![CDATA[
+						UPPER(lifecycle_status) = 'DELETED' and lifecycle_status_update &lt; (localtimestamp - interval '%%value:purge-period%%' day) and not exists ( select 1 from linked_asset l where l.link_to = asset.asset_id ) and not exists ( select 1 from linked_asset l2 where l2.asset_id = asset.asset_id )
+					]]></criteria>
+				<allowed_status>Deleted</allowed_status>
+
+				<datasource>default</datasource>
+
+				<!-- Not currently used. -->
+				<saved_search_name description="Selection search">PurgingRule</saved_search_name>
+
+				<schedule-type>manual</schedule-type>
+				<schedule-interval-count>1</schedule-interval-count>
+				<schedule-interval-type>minute</schedule-interval-type>
+			</TEMPLATE_PROPERTIES>
+<schedule-type>scheduled</schedule-type><schedule-interval-count/><schedule-interval-type>minute</schedule-interval-type><schedule-timed-minutes>0</schedule-timed-minutes><schedule-timed-hours>3</schedule-timed-hours><schedule-timed-weekdays>1-7</schedule-timed-weekdays><schedule-timed-dates>1-31</schedule-timed-dates><schedule-timed-months>1-12</schedule-timed-months><BLOCKED>n</BLOCKED></properties>
+	</config>
+</media-mogul-configuration>

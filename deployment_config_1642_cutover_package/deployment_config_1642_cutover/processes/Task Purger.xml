@@ -5,7 +5,7 @@
             <TYPE hidden="true">TaskPurger</TYPE>
             <NAME description="Name">Task Purger</NAME>
             <APP_GROUP description="Aplication group">SYSGROUP2</APP_GROUP>
-            <NORMALLY_RUNNING hidden="true">n</NORMALLY_RUNNING>
+            <NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
             <DOWNLOAD_PURGE description="Time out for purging download tasks">30</DOWNLOAD_PURGE>
             <DEFAULT_PURGE description="Time out for purging all other tasks">7</DEFAULT_PURGE>
             <ERROR_PURGE description="Time out for purging 'error'd tasks">30</ERROR_PURGE>

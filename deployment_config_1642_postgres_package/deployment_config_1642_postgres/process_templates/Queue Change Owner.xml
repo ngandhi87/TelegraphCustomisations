@@ -5,15 +5,14 @@
 			<module ref="Find applicable records">
 				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
 				<config>
-					<criteria><![CDATA[
-asset_id in 
-(
-select asset_id 
-from picture 
-where creation_stamp <= cast(current_timestamp at time zone dbtimezone as date) - (%%value:DAYS_OLD%%)
-) 
-and asset.owner_id = (select role_id from mm_role where role_name = '%%value:OLDOWNER%%')
-]]></criteria>
+					<criteria><![CDATA[asset_id in
+                        (
+                        select asset_id
+                        from picture
+                        where creation_stamp <= (localtimestamp - interval '%%value:DAYS_OLD:30%%' day)
+                        )
+                        and asset.owner_id = (select role_id from mm_role where role_name = '%%value:OLDOWNER%%')
+                        ]]></criteria>
 					<datasource>default</datasource>
 					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
 					<idfield>ASSET_ID</idfield>

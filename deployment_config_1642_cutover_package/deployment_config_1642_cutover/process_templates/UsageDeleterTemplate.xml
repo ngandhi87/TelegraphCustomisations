@@ -51,7 +51,7 @@
 					<statement>					
 						insert into chp_index_queue (creation_stamp, update_stamp, queue_name, status, item_key, index_id, priority)
 						select cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date),
-							'MM_INDEX_QUEUE', 'PENDING', asset_id, chp_index_queue_seq.nextval, 30 
+							'MM_INDEX_QUEUE', 'PENDING', asset_id, chp_index_queue_seq.nextval, %%value:index-priority:100%%
 							from DELETED_USAGES 
 							where PROCESS_NAME = '%%value:NAME%%'
 					</statement>

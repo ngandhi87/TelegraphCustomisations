@@ -4,4 +4,5 @@ set_folder ./deployment_config_1642_dual_running
 import_config settings
 import_config groovy_scripts
 import_config processes
+import_config process_templates
 import_config transformers

@@ -1,0 +1,37 @@
+<media-mogul-configuration>
+	<config groupname="System Message Weeder">
+		<properties>
+			<CLASS hidden="true">Maintenance</CLASS>
+			<TYPE hidden="true">Weeder</TYPE>
+			<NAME description="Name">System Message Weeder</NAME>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+			<DEFAULT_PURGE description="Time period for purging system messages (Days)">31</DEFAULT_PURGE>
+		<BLOCKED>n</BLOCKED></properties>
+		<modules>
+			<module ref="SystemMessageWeeder">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>DELETE FROM SYSTEM_MESSAGES_LINK WHERE MESSAGE_ID IN (SELECT MESSAGE_ID FROM SYSTEM_MESSAGES WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day))</statement>
+					<statement>DELETE FROM SYSTEM_MESSAGES WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day)</statement>
+					<statement>DELETE FROM CHP_NOTIFICATION WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day) LIMIT 10000</statement>
+				</config>
+			</module>
+		</modules>
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>6</count>
+				<intervalsize>hour</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months>1-12</months>
+				<dates>1-31</dates>
+				<weekdays>1-7</weekdays>
+				<hours>2</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+	</config>
+</media-mogul-configuration>

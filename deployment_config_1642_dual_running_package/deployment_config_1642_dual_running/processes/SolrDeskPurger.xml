@@ -1,0 +1,39 @@
+<media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS>Indexing</CLASS>
+			<TYPE>IndexTask</TYPE>
+			<NAME>Solr desk purger</NAME>
+			<APP_GROUP description="Application group">CHP 1642</APP_GROUP>
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+			<log-report-data>false</log-report-data>
+		</properties>
+		<!-- Runs once a night (1am) -->
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>15</count>
+				<intervalsize>second</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months/>
+				<dates/>
+				<weekdays/>
+				<hours>1</hours>
+				<minutes>0</minutes>
+			</timedschedule>
+		</schedule>
+		<modules>
+			<module ref="IndexTasks">
+				<class>com.picdar.process2.Repository.Indexer.Indexer</class>
+				<config>
+					<index-manager-resource>QueueIndexManager</index-manager-resource>
+					<task-list>purge</task-list>
+					<log-report-data>false</log-report-data>
+					<task-config>
+					</task-config>
+				</config>
+			</module>
+		</modules>
+	</config>
+</media-mogul-configuration>

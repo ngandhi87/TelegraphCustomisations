@@ -60,18 +60,34 @@ In this case the node_id is 'TELEMMGLHCAT000000221761'; this folder any any fold
 					<datasource>default</datasource>
 					<table>PICTURE</table>
 					<idfield>ASSET_ID</idfield>
-					<criteria><![CDATA[ 
-asset_id in ( 
-	select ac.asset_id 
-	from ASSET_CATEGORY ac 
-	where ac.node_id in ( 
-		SELECT hc.node_id 
-		FROM hard_categories hc
-		CONNECT BY PRIOR hc.NODE_ID = hc.PARENT_ID 
-		START WITH hc.node_id = '%%value:node_id%%'
-	) 
-) 
-					]]></criteria>
+
+                    <!-- Oracle version of the SQL
+					<criteria><![CDATA[
+                        asset_id in (
+                            select ac.asset_id
+                            from ASSET_CATEGORY ac
+                            where ac.node_id in (
+                                SELECT hc.node_id
+                                FROM hard_categories hc
+                                CONNECT BY PRIOR hc.NODE_ID = hc.PARENT_ID
+                                START WITH hc.node_id = '%%value:node_id%%'
+                            )
+                        )
+					]]></criteria> -->
+                    <criteria><![CDATA[ asset_id in (
+                                select ac.asset_id
+                                from ASSET_CATEGORY ac
+                                where ac.node_id in (
+                                WITH RECURSIVE cte AS (
+                               SELECT node_id, key, 1 AS level
+                               FROM   hard_categories WHERE  node_id = '%%value:node_id%%'
+                               UNION  ALL
+                               SELECT t.node_id, t.key, c.level + 1
+                               FROM cte c
+                               JOIN hard_categories t ON t.parent_id = c.node_id)
+                        SELECT NODE_ID
+                        FROM   cte
+                        ORDER  BY level))]]></criteria>
 					<limit>0</limit>
 					<batch>1</batch>
 				</config>
@@ -98,16 +114,33 @@ asset_id in (
 					<table>ASSET_CATEGORY</table>
 					<idfield>NODE_ID</idfield>
 					<limit>1</limit>
-					<criteria><![CDATA[ 
-ASSET_ID =  '$$ITEM_ID$$' and 
-timestamp < sysdate - %%value:unlinktime%% and 
-NODE_ID IN ( 
-	SELECT hc.node_id 
-	FROM hard_categories hc
-	CONNECT BY PRIOR hc.NODE_ID = hc.PARENT_ID 
-	START WITH hc.node_id = '%%value:node_id%%' 
-) 
-]]></criteria>
+                    <criteria><![CDATA[
+                    ASSET_ID =  '$$ITEM_ID$$' and
+                    timestamp < (localtimestamp - interval '%%value:unlinktime%%' day) and
+                    NODE_ID IN (
+                        WITH RECURSIVE cte AS (
+                           SELECT node_id, key, 1 AS level
+                           FROM   hard_categories WHERE  node_id = '%%value:node_id%%'
+                           UNION  ALL
+                           SELECT t.node_id, t.key, c.level + 1
+                           FROM cte c
+                           JOIN hard_categories t ON t.parent_id = c.node_id
+                           )
+                        SELECT NODE_ID
+                        FROM   cte
+                        ORDER  BY level)
+                    ]]></criteria>
+
+                    <!-- <criteria><![CDATA[
+                    ASSET_ID =  '$$ITEM_ID$$' and
+                    timestamp < (localtimestamp - interval '%%value:unlinktime%%' day) and
+                    NODE_ID IN (
+                        SELECT hc.node_id
+                        FROM hard_categories hc
+                        CONNECT BY PRIOR hc.NODE_ID = hc.PARENT_ID
+                        START WITH hc.node_id = '%%value:node_id%%'
+                    )
+                    ]]></criteria> -->
 					<store-name>NODE_ID</store-name>
 				</config>
 			</module>
@@ -118,7 +151,8 @@ NODE_ID IN (
 					<datasource>default</datasource>
 					<use-at>yes</use-at>
 					<object-source>PHOTORECORD_DOA</object-source>
-<statement><![CDATA[SELECT COUNT(a.ASSET_ID) FROM ASSET_CATEGORY a where ASSET_ID =  '@@read-from:__process-key@@' and a.node_id = '%%value:node_id%%' and timestamp < sysdate - %%value:unlinktime%%]]></statement>
+                    <statement><![CDATA[SELECT COUNT(a.ASSET_ID) FROM ASSET_CATEGORY a where ASSET_ID =  '@@read-from:__process-key@@' and a.node_id = '%%value:node_id%%'
+                    and timestamp < (localtimestamp - interval '%%value:unlinktime%%' day)]]></statement>
 					<store_name>HAS_NODES</store_name>
 					<stores_field_names>no</stores_field_names>
 					<add_to_process_item>yes</add_to_process_item>

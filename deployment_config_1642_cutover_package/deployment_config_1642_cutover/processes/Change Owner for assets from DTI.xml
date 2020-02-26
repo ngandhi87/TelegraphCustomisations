@@ -1,7 +1,7 @@
 <media-mogul-configuration>
 	<config groupname="Queuer Change Owner Action Images">
 		<properties>
-			<CLASS hidden="true">Telegraph Workflows</CLASS>
+			<CLASS hidden="true">Maintenance</CLASS>
 			<TYPE hidden="true">Change Owner</TYPE>
 			<NAME hidden="true">Change Owner for assets from DTI</NAME>
 			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
@@ -29,7 +29,7 @@
 
 		<modules>
 <!-- Find all records that were created in DTI and pushed over via CMIS 
-     that are still owened by 'System' and re-own them to 'Library Audit'
+     that are still owned by 'System' and re-own them to 'Library Audit'
      NB: this could be a trigger but there is no means of identifying the usage based on the
          asset.
 
@@ -74,7 +74,9 @@ feed_name = 'DTI'
  			<!-- Start the transaction. -->
 			<module ref="TransactionStart">
 				<class>com.picdar.process2.Core.TransactionStart</class>
-				<config/>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
 			</module>
 
 			<module ref="Read the record from CHP">

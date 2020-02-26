@@ -14,7 +14,7 @@
 				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
 				<config>
 					<datasource>default</datasource>
-					<statement>INSERT INTO asset_category (timestamp, asset_id, node_id) SELECT sysdate, asset_id, '%%value:COMMUNITY_FOLDER%%' FROM asset WHERE owner_id NOT LIKE 'TELE%' AND owner_id !='System' AND asset_id NOT IN (SELECT asset_id FROM asset_category WHERE node_id ='%%value:COMMUNITY_FOLDER%%')</statement>
+					<statement>INSERT INTO asset_category (timestamp, asset_id, node_id) SELECT localtimestamp, asset_id, '%%value:COMMUNITY_FOLDER%%' FROM asset WHERE owner_id NOT LIKE 'TELE%' AND owner_id !='System' AND asset_id NOT IN (SELECT asset_id FROM asset_category WHERE node_id ='%%value:COMMUNITY_FOLDER%%')</statement>
 				</config>
 			</module>
 		</modules>

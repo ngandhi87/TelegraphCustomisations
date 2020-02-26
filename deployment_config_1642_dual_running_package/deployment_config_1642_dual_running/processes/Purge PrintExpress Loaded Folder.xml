@@ -1,0 +1,54 @@
+<media-mogul-configuration>	
+	<config groupname="DMFolderPurger">
+		<properties>
+			<CLASS>Maintenance</CLASS>
+			<TYPE>Purger</TYPE>
+			<NAME>Purge PrintExpress Loaded Folder</NAME>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+
+			<!--
+				<START_URL>http://172.17.2.151:8080/SystemManagement/ProcessStarter</START_URL>
+			-->
+
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+		<schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/></properties>
+
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>30</count>
+				<intervalsize>minute</intervalsize>
+			</runinterval>
+			<timedschedule>
+				<months/>
+				<dates/>
+        		<weekdays/>
+        		<hours>01</hours>
+        		<minutes>30</minutes>
+			</timedschedule>
+    	</schedule>
+
+    	<modules>
+			<module ref="FolderPurger">
+				<class>com.picdar.process2.Acquisition.FolderPurger.FolderPurgerModule</class>
+				<config>
+          			<testOnly>false</testOnly>
+          			<resourceForkEntries>.AppleDouble,.rsrc,.HSResource,.HSancillary</resourceForkEntries>
+          			<categories>
+            			<category name="Load Folders">
+              				<config>
+                				<purgeDelay>2 day</purgeDelay>
+								<paths>
+									<path>/hub-assets/loader/printexpress/Loaded</path>
+								</paths>
+                				<deleteDirectives>normalfiles</deleteDirectives>
+                				<ignoreDirsPattern/>
+                				<ignoreFilePattern/>
+							</config>
+						</category>
+					</categories>
+				</config>
+			</module>
+		</modules>
+	</config>
+</media-mogul-configuration>

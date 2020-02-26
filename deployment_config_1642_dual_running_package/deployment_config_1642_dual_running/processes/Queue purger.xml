@@ -1,0 +1,55 @@
+<media-mogul-configuration>
+	<config groupname="Maintenance">
+		<properties>
+			<CLASS>Maintenance</CLASS>
+			<TYPE>Database</TYPE>
+			<NAME>Queue purger</NAME>
+			<APP_GROUP/>
+			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+			<NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+		</properties>
+		<schedule>
+			<scheduletype>scheduled</scheduletype>
+			<runinterval>
+				<count>24</count>
+
+				<intervalsize>hour</intervalsize>
+
+			</runinterval>
+			<timedschedule>
+				<hours>00</hours>
+				<minutes>01</minutes>
+				<weekdays/>
+				<dates/>
+				<months/>
+			</timedschedule>
+		</schedule>
+
+		<modules>
+<!-- Remove PCP related component 26/06/2017 -->
+<!--
+			<module ref="Delete updates to PCP as non is available">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement>delete from mm_queue where queue_name = 'PCP_STATUS_UPDATE'</statement>
+				</config>
+			</module>
+-->
+			<module ref="Delete Hires transfer queue of old entries">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[delete from mm_queue where queue_name = 'HiresAssetRelocateQueue' and CREATION_STAMP < sysdate - 10]]></statement>
+				</config>
+			</module>
+			<module ref="Delete regular transfer queue of old entries">
+				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+				<config>
+					<datasource>default</datasource>
+					<statement><![CDATA[delete from mm_queue where queue_name = 'AssetRelocateQueue' and CREATION_STAMP < sysdate - 10]]></statement>
+				</config>
+			</module>
+		</modules>
+	</config>
+</media-mogul-configuration>

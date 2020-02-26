@@ -1,0 +1,130 @@
+<media-mogul-configuration>
+        <config groupname="Maintenance">
+                <properties>
+                    <mailhost hidden="true">mailhost</mailhost>
+                    <TEMPLATE>eLoaderPictureQueuerTemplate</TEMPLATE>
+
+                        <AA_srver description="Choose profile" linkedProperty="mailserverconfig" type="list">
+
+                        <hubpicdsk3 type="listValue"><![CDATA[
+                        <identifier>hubpicdsk3</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>hubpicdsk3</account>
+                        <password>hubpicdsk</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></hubpicdsk3>
+
+                        <photo-uat type="listValue"><![CDATA[
+                        <identifier>photo-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>photo-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></photo-uat>
+
+                        <ephotosunday-uat type="listValue"><![CDATA[
+                        <identifier>ephotosunday-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>ephotosunday-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></ephotosunday-uat>
+
+                        <ephotocity-uat type="listValue"><![CDATA[
+                        <identifier>ephotocity-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>ephotocity-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></ephotocity-uat>
+
+                        <ephotomypic-uat type="listValue"><![CDATA[
+                        <identifier>ephotomypic-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>ephotomypic-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></ephotomypic-uat>
+
+                        <ephotocreate-uat type="listValue"><![CDATA[
+                        <identifier>ephotocreate-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>ephotocreate-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></ephotocreate-uat>
+
+                        <ephotoadget-uat type="listValue"><![CDATA[
+                        <identifier>ephotoadget-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>ephotoadget-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></ephotoadget-uat>
+
+                        <ephotomarketing-uat type="listValue"><![CDATA[
+                        <identifier>ephotomarketing-uat</identifier>
+                        <protocol>imap4</protocol>
+                        <host>%%value:mailhost%%</host>
+                        <account>ephotomarketing-uat</account>
+                        <password>H0Badm</password>
+                        <use-ssl>0</use-ssl>
+                        <property key='mail.imap.auth.login.disable'>false</property>
+                        <property key='mail.imap.starttls.enable'>false</property>
+                        ]]></ephotomarketing-uat>
+
+                        </AA_srver>
+
+                        <mailserverconfig description="Mailserver configuration">&lt;identifier&gt;hubpicdskuat3&lt;/identifier&gt;&lt;protocol&gt;imap4&lt;/protocol&gt;&lt;host&gt;%%value:mailhost%%&lt;/host&gt;&lt;account&gt;hubpicdskuat3&lt;/account&gt;&lt;password&gt;hubpicdsk&lt;/password&gt;&lt;use-ssl&gt;0&lt;/use-ssl&gt;&lt;property key='mail.imap.auth.login.disable'&gt;false&lt;/property&gt;&lt;property key='mail.imap.starttls.enable'&gt;false&lt;/property&gt;</mailserverconfig>
+                        <AA_feed description="Choose feed name for profile" linkedProperty="feedname" type="list">
+                        <hubpicdsk3>hubpicdsk3</hubpicdsk3>
+                        <ephoto>EPhoto</ephoto>
+                        <ephotosunday>EPhotoSunday</ephotosunday>
+                        <ephotocity>EPhotoCity</ephotocity>
+                        <ephotomypic>EPhotoMyPic</ephotomypic>
+                        <ephotocreate>EPhotoCreate</ephotocreate>
+                        <ephotoadget>EPhotoAdGet</ephotoadget>
+                        <ephotomarketing>EPhotoMarketing</ephotomarketing>
+                        </AA_feed>
+                        <CLASS>Feeds Ingestion - eLoader Pictures</CLASS>
+                        <TYPE>eLoader Retrieval</TYPE>
+                        <NAME>hubpicdsk3 Retriever</NAME>
+                        <APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+                        <NORMALLY_RUNNING type="checkbox">y</NORMALLY_RUNNING>
+                        <feedname type="hidden">hubpicdsk3</feedname>
+                        <feed-name>%%value:feedname%%</feed-name>
+                        <queueName>%%value:feedname%%</queueName>
+                        <spoolDirectory>/hub-assets/loader/email/eloader/spool/%%value:feedname%%</spoolDirectory>
+                        <maxMessageSize>0</maxMessageSize><!-- 0 = unlimited -->
+                        <timeout>0</timeout><!-- 0 = unlimited -->
+                        <queueObjectName>eloader.%%value:feedname%%</queueObjectName>
+
+                        <schedule-type>continuous</schedule-type>
+                        <schedule-interval-count>30</schedule-interval-count>
+                        <schedule-interval-type>second</schedule-interval-type>
+
+                    </properties>
+
+        </config>
+</media-mogul-configuration>

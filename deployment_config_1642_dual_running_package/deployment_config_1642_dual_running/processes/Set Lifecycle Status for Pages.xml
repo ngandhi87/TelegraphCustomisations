@@ -1,0 +1,48 @@
+<media-mogul-configuration>
+    <config groupname="Maintenance">
+        <properties>
+            <CLASS>Upgrade</CLASS>
+            <TYPE>Database</TYPE>
+            <NAME>Set Lifecycle Status for Pages</NAME>
+            <APP_GROUP>SYSGROUP2</APP_GROUP>
+            <APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
+            <NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+            <BLOCKED>n</BLOCKED>
+            <TEMPLATE/>
+            <START_URL/>
+        <schedule-timed-minutes/><schedule-timed-hours/><schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/></properties>
+        <schedule>
+            <scheduletype>continuous</scheduletype>
+            <runinterval>
+                <count>10</count>
+                <intervalsize>second</intervalsize>
+            </runinterval>
+            <timedschedule>
+                <hours/>
+                <minutes/>
+                <weekdays/>
+                <dates/>
+                <months/>
+            </timedschedule>
+        </schedule>
+        <modules>
+            <module ref="set connector column on asset locator">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement>
+                                                                                                                        
+                        
+                        
+                        
+                        <![CDATA[update asset set lifecycle_status = 'Archive' where type = 'PAGE' and (lifecycle_status != 'Archive' or lifecycle_status is null) and rownum <= 5000]]>
+                                                                                                                    
+                    
+                    
+                    
+                    </statement>
+                </config>
+            </module>
+        </modules>
+    </config>
+</media-mogul-configuration>

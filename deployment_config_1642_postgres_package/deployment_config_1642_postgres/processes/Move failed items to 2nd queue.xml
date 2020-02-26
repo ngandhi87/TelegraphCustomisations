@@ -31,7 +31,7 @@
 				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
 				<config>
 					<datasource>default</datasource>
-					<statement>update mm_queue set queue_name = queue_name || '.Failed' where upper(status) = 'FAILED' and queue_name not like '%.Failed' and update_stamp &lt;= cast(current_timestamp at time zone dbtimezone as date) - %%value:MINUTES_OLDER%%/1440</statement>
+					<statement>update mm_queue set queue_name = queue_name || '.Failed' where upper(status) = 'FAILED' and queue_name not like '%.Failed' and update_stamp &lt;= (localtimestamp - interval '%%value:MINUTES_OLDER%%' minute)</statement>
 				</config>
 			</module>
 		</modules>

@@ -36,7 +36,7 @@
 						UPDATE TMG_RIGHTS
 						SET COSTGROUPA = '%%value:NEW_COST_INDICATOR%%',
 							COST_OVERRIDDEN = '0',
-							OVERRIDDEN_AUDIT = DECODE(OVERRIDDEN_AUDIT, NULL, 'Cost Indicator was bulk changed to ''%%value:NEW_COST_INDICATOR%%'' by system admin on ' || to_char(cast(current_timestamp at time zone dbtimezone as date), 'YYYY-MM-DD HH24:MI:SS'), OVERRIDDEN_AUDIT || CHR(10) || 'Cost Indicator was bulk changed to ''%%value:NEW_COST_INDICATOR%%'' by system admin on ' || to_char(cast(current_timestamp at time zone dbtimezone as date), 'YYYY-MM-DD HH24:MI:SS')) 
+							OVERRIDDEN_AUDIT = DECODE(OVERRIDDEN_AUDIT, NULL, 'Cost Indicator was bulk changed to ''%%value:NEW_COST_INDICATOR%%'' by system admin on ' || to_char(localtimestamp, 'YYYY-MM-DD HH24:MI:SS'), OVERRIDDEN_AUDIT || CHR(10) || 'Cost Indicator was bulk changed to ''%%value:NEW_COST_INDICATOR%%'' by system admin on ' || to_char(localtimestamp, 'YYYY-MM-DD HH24:MI:SS'))
 						WHERE ASSET_ID IN
 						(
 						SELECT p.ASSET_ID
@@ -82,7 +82,7 @@
 					<statement>
 						INSERT INTO BACKLOG_INDEX_QUEUE (CREATION_STAMP, UPDATE_STAMP, QUEUE_NAME, STATUS, ITEM_KEY, INDEX_ID, ATTEMPT_COUNT)
 						(
-						SELECT cast(current_timestamp at time zone dbtimezone as date), cast(current_timestamp at time zone dbtimezone as date), 'MM_INDEX_QUEUE', 'PENDING', p.ASSET_ID, backlog_index_queue_seq.nextval, 0
+						SELECT localtimestamp, localtimestamp, 'MM_INDEX_QUEUE', 'PENDING', p.ASSET_ID, nextval('backlog_index_queue_seq'), 0
 						FROM PICTURE p INNER JOIN ASSET a ON p.ASSET_ID = a.ASSET_ID
 						WHERE a.OWNER_ID = (SELECT ROLE_ID FROM MM_ROLE WHERE UPPER(ROLE_NAME) = UPPER('%%value:OWNER%%'))
 						)

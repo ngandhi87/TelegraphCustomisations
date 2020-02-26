@@ -39,26 +39,12 @@
 			<module ref="Find applicable records">
 				<class>com.picdar.process2.Acquisition.RecordSelector.RecordSelector</class>
 				<config>
-					<xcriteria><![CDATA[
-asset_id in (
-select u2.asset_id from usage u, usage u2, dti_usage d 
-where 
-  u2.asset_id = u.asset_id and 
-  u.asset_id like 'TELEMMGLPICT%' and 
-  upper(u.status) = 'PUBLISHED' and 
-  u.usage_id = d.asset_id and 
-  d.creation_stamp > $$RECORD$$
-group by u2.asset_id 
-having(count(u2.asset_id)) = 1
-) and asset.owner_id = 'System'
-]]></xcriteria>
-					<criteria><![CDATA[
-asset_id in (
-select asset_id from picture where
-creation_stamp > $$RECORD$$ and
-feed_name = 'DTI'
-) and asset.owner_id = 'System'
-]]></criteria>
+					<criteria><![CDATA[asset_id in (
+                        select asset_id from picture where
+                        creation_stamp > $$RECORD$$ and
+                        feed_name = 'DTI'
+                        ) and asset.owner_id = 'System']]>
+                    </criteria>
 					<datasource>default</datasource>
 					<datasource_classname>com.picdar.process2.Acquisition.RecordSelector.JDBC.RecSelDataSourceJDBC</datasource_classname>
 					<dateformat>dd/MM/yyyy</dateformat>

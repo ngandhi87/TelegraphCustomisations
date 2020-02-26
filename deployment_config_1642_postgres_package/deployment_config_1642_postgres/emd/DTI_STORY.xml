@@ -1,0 +1,98 @@
+<dbschema user="">
+	<table name="DTI_STORY" aka="DTI Story Info" sequence="true" pktype="sequence" priority="" group_order="" asset_types="STORY,COMPOSITE" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="CAT_CODE" fieldtype="STRING" length="100" aka="Cat code" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="DTI_CHARACTERS" fieldtype="STRING" length="100" aka="Characters" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="SENT_PICTURE_DESK" fieldtype="STRING" length="100" aka="DTI Picture Desk" freetext_type="keyword" possible_values="" order="2" group="DTI content" properties="tab-order=2, listsource=DTIPictureDesk" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="DTI_ID" fieldtype="STRING" length="100" aka="DTI ID" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="SUBCATEGORY" fieldtype="STRING" length="100" aka="Sub category" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="LEGAL_USER" fieldtype="STRING" length="100" aka="Legal user" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="SENT_WORKFLOW_STATUS" fieldtype="STRING" length="100" aka="DTI Status" flags="LIST" list_options="values:Filed,Rough Subbed,Accepted,Hold" freetext_type="keyword" possible_values="Filed,Rough Subbed,Accepted,Hold" order="4" group="DTI content" properties="tab-order=4" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="USERGROUP" fieldtype="STRING" length="100" aka="Usergroup" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="COMMISSION_NAME" fieldtype="STRING" length="256" aka="Commission name" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="SENT_DESK" fieldtype="STRING" length="100" aka="DTI Story Desk" freetext_type="keyword" possible_values="" order="1" group="DTI content" properties="tab-order=1, listsource=DTIStoryDesk" />
+			<column name="USERNAME" fieldtype="STRING" length="100" aka="User name" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="SUGGESTED_PAGE" fieldtype="STRING" length="20" aka="Suggested page" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="LEGAL_REQUEST" fieldtype="STRING" length="100" aka="Legal request" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="DTI_ORIGIN" fieldtype="STRING" length="100" aka="DTI origin" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="LEGAL_REQUESTTIME" fieldtype="DATE" length="0" aka="Legal request time" freetext_type="datetime" possible_values="" group="DTI story info" properties="tab-order=0" />
+			<column name="BATCH_FILE_NAME" fieldtype="STRING" length="100" aka="Batch file name" freetext_type="text" possible_values="" order="3" group="DTI content" properties="tab-order=3" />
+			<column name="COMMISSION_NOTES" fieldtype="CLOB" length="0" aka="Notes" freetext_type="text" possible_values="" group="DTI story info" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="BATCH_FILE_NAME" >
+				<column name="ASSET_ID" />
+				<column name="BATCH_FILE_NAME" />
+			</index>
+			<index name="SENT_WORKFLOW_STATUS" >
+				<column name="ASSET_ID" />
+				<column name="SENT_WORKFLOW_STATUS" />
+			</index>
+			<index name="SENT_DESK" >
+				<column name="ASSET_ID" />
+				<column name="SENT_DESK" />
+			</index>
+			<index name="LEGAL_REQUEST" >
+				<column name="ASSET_ID" />
+				<column name="LEGAL_REQUEST" />
+			</index>
+			<index name="CAT_CODE" >
+				<column name="ASSET_ID" />
+				<column name="CAT_CODE" />
+			</index>
+			<index name="DTI_ORIGIN" >
+				<column name="ASSET_ID" />
+				<column name="DTI_ORIGIN" />
+			</index>
+			<index name="SUBCATEGORY" >
+				<column name="ASSET_ID" />
+				<column name="SUBCATEGORY" />
+			</index>
+			<index name="DTI_CHARACTERS" >
+				<column name="ASSET_ID" />
+				<column name="DTI_CHARACTERS" />
+			</index>
+			<index name="USERGROUP" >
+				<column name="ASSET_ID" />
+				<column name="USERGROUP" />
+			</index>
+			<index name="LEGAL_USER" >
+				<column name="ASSET_ID" />
+				<column name="LEGAL_USER" />
+			</index>
+			<index name="COMMISSION_NAME" >
+				<column name="ASSET_ID" />
+				<column name="COMMISSION_NAME" />
+			</index>
+			<index name="SUGGESTED_PAGE" >
+				<column name="ASSET_ID" />
+				<column name="SUGGESTED_PAGE" />
+			</index>
+			<index name="DTI_ID" >
+				<column name="ASSET_ID" />
+				<column name="DTI_ID" />
+			</index>
+			<index name="USERNAME" >
+				<column name="ASSET_ID" />
+				<column name="USERNAME" />
+			</index>
+			<index name="SENT_PICTURE_DESK" >
+				<column name="ASSET_ID" />
+				<column name="SENT_PICTURE_DESK" />
+			</index>
+			<index name="LEGAL_REQUESTTIME" >
+				<column name="ASSET_ID" />
+				<column name="LEGAL_REQUESTTIME" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

@@ -1,0 +1,42 @@
+<dbschema user="">
+	<table name="WEB_EXTERNAL" aka="External" sequence="true" pktype="sequence" priority="" group_order="" asset_types="USAGE" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="STATUS" fieldtype="STRING" length="100" aka="Status" freetext_type="text" possible_values="" order="1" group="" properties="tab-order=1" />
+			<column name="GALLERY_CHP_ID" fieldtype="STRING" length="30" aka="Gallery" freetext_type="text" possible_values="" order="2" group="" properties="tab-order=2" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="USER_ID" fieldtype="STRING" length="200" aka="User ID" freetext_type="text" possible_values="" order="4" group="" properties="tab-order=4" />
+			<column name="ARTICLE_URL" fieldtype="STRING" length="1000" aka="Article URL" freetext_type="text" possible_values="" order="3" group="" properties="tab-order=3" />
+			<column name="USER_NAME" fieldtype="STRING" length="200" aka="User name" freetext_type="text" possible_values="" order="5" group="" properties="tab-order=5" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="STATUS" >
+				<column name="ASSET_ID" />
+				<column name="STATUS" />
+			</index>
+			<index name="GALLERY_CHP_ID" >
+				<column name="ASSET_ID" />
+				<column name="GALLERY_CHP_ID" />
+			</index>
+			<index name="ARTICLE_URL" >
+				<column name="ASSET_ID" />
+				<column name="ARTICLE_URL" />
+			</index>
+			<index name="USER_ID" >
+				<column name="ASSET_ID" />
+				<column name="USER_ID" />
+			</index>
+			<index name="USER_NAME" >
+				<column name="ASSET_ID" />
+				<column name="USER_NAME" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

@@ -6,3 +6,4 @@ import_config groovy_scripts
 import_config plugins
 import_config processes
 import_config transformers
+set_preference_for_users "select name from mm_user where LOWER(NAME) != 'administrator'" "CHP" "whats_new_16.4.2.3" "true"

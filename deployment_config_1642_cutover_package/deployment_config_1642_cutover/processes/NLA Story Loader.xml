@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><media-mogul-configuration>
+    <config groupname="StoryLoader">
+        <properties>
+            <CLASS>Story Ingestion</CLASS>
+            <TYPE>StoryLoader</TYPE>
+            <NAME>NLA Story Loader</NAME>
+            <APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+            <INTRAY_DIRECTORY>/hub-assets/loader/text/NLA</INTRAY_DIRECTORY>
+            <REJECTS_DIRECTORY>/hub-assets/loader/text/Rejects/NLA</REJECTS_DIRECTORY>
+            <LOADED_DIRECTORY>/hub-assets/loader/text/Loaded/NLA</LOADED_DIRECTORY>
+            <REJECTED_XML_DIRECTORY>/hub-assets/loader/live/text/Rejects/NLA</REJECTED_XML_DIRECTORY>
+            <FEED_NAME description="Feed name">NLA Story Feed</FEED_NAME>
+            <NORMALLY_RUNNING>y</NORMALLY_RUNNING>
+        <BLOCKED>n</BLOCKED></properties>
+        <modules>
+            <module ref="Finds stories">
+                <class>com.picdar.process2.Acquisition.FileChecker.FileChecker</class>
+                <config>
+                    <directory>%%value:INTRAY_DIRECTORY%%</directory>
+                    <rejectsDir>%%value:REJECTS_DIRECTORY%%</rejectsDir>
+                    <loadedDir>%%value:LOADED_DIRECTORY%%</loadedDir>
+                    <settleTime>10</settleTime>
+                    <maxFiles>NO_LIMIT</maxFiles>
+                    <descend>false</descend>
+                    <ignoreZeroLength>true</ignoreZeroLength>
+                    <filterByExt/>
+                    <filterclass>com.picdar.mogulsupport.FileSystems.FileFilter.FileConfigFilter</filterclass>
+                    <ignoreZeroLength>true</ignoreZeroLength>
+                    <direxcludefilter>.*</direxcludefilter>
+                    <dirincludefilter/>
+                    <fileexcludefilter>.*</fileexcludefilter>
+                    <fileincludefilter>*.xml,*.XML</fileincludefilter>
+                    <defaultCleanup>load</defaultCleanup>
+                    <dateBasedLoaded>true</dateBasedLoaded>
+                    <moveType>date-based</moveType>
+                </config>
+             </module>
+             <module ref="FileReader">
+                <class>com.picdar.process2.Acquisition.FileReader.ProcessItemFileReader</class>
+                <config>
+                <load-format>String</load-format>
+                <store-name>storyXML</store-name>
+                </config>
+                </module>
+<!--
+<module ref="Export_orig_2">
+				<class>com.picdar.process2.Delivery.DataWriter.DataWriter</class>
+				<config>
+					<storeitem>singleStoryXML</storeitem>
+					<filename mode="fixed">do_before.xml</filename>
+					<directory mode="" replace="/tmp" singleitems="true">/tmp</directory>
+					<fileExistsMode>append</fileExistsMode>
+				</config>
+			</module>
+-->
+            <module ref="Transforms story">
+                <class>com.picdar.process2.Processing.XMLTransformer.XMLTransformer</class>
+                <config>
+                    <transform name="TelegraphNLAStory2DOXML">
+                        <readname>storyXML</readname>
+			<trans-props>
+				<FEED_NAME>%%value:FEED_NAME%%</FEED_NAME>
+			</trans-props>
+                        <storename>StoryMetadata</storename>
+                    </transform>
+                    <failureiscritical>false</failureiscritical>
+                </config>
+            </module>
+<!--
+<module ref="Export_orig">
+				<class>com.picdar.process2.Delivery.DataWriter.DataWriter</class>
+				<config>
+					<storeitem>StoryMetadata</storeitem>
+					<filename mode="fixed">do_xml.xml</filename>
+					<directory mode="" replace="/tmp" singleitems="true">/tmp</directory>
+					<fileExistsMode>append</fileExistsMode>
+				</config>
+			</module>
+-->
+            <module ref="Converts to dataobject">
+                <class>com.picdar.process2.Repository.MetadataConverter.MetaDataConverter</class>
+                <config>
+                    <object-name>StoryMetadata</object-name>
+                </config>
+            </module>
+            <!--module ref="Inspecting StoryMetadata Before Cleaner">
+	    	<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+	    	<config>
+	    		<inspect>StoryMetadata</inspect>
+	    	</config>
+	    </module-->
+	    <module ref="DataObjectCleaner">
+		<class>com.picdar.process2.Repository.DataObjectCleaner.DataObjectCleaner</class>
+		<config>
+			<object-name>StoryMetadata</object-name>
+			<check_against_publications>USAGE</check_against_publications>
+		</config>
+	    </module>
+	    <!-- Set the lifecycle status for the asset to 'Archive' and prevent the usage listener from trying to create an edition instance and page -->
+	    <!-- Set the origin to 'Archive' to prevent indexing in the desk index partition -->
+            <module ref="MetaDataProcessor">
+                <class>com.picdar.process2.Processing.MetaDataProcessor.MetaDataProcessor</class>
+                <config>
+                   <object-name>StoryMetadata</object-name>
+                   <add-attributes>
+                      <add-attribute name="LIFECYCLE_STATUS">Archive</add-attribute>
+                      <add-attribute name="ORIGIN">Archive</add-attribute>
+		      <add-attribute name="__skip_usage_listener">Yes</add-attribute>
+                   </add-attributes>
+                </config>
+            </module>
+            <!--module ref="Inspecting StoryMetadata After Cleaner">
+	    	<class>com.picdar.process2.Testing.DataInspector.DataInspector</class>
+	    	<config>
+	    		<inspect>StoryMetadata</inspect>
+	    	</config>
+	    </module-->
+            <module ref="Starts transaction">
+                <class>com.picdar.process2.Core.TransactionStart</class>
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
+            </module>
+            <module ref="Saves story in repository">
+                <class>com.picdar.process2.Repository.DataObjectLoader.DataObjectLoader</class>
+                <config>
+		    <object-name>StoryMetadata</object-name>
+		    <!-- create-asset-records>true</create-asset-records -->
+		    <match_existing_records>false</match_existing_records>
+		    <match_by_primary_key>false</match_by_primary_key>
+		    <match_fields/>
+		    <reject_matched_records>false</reject_matched_records>
+		    <!--update_matched_records>false</update_matched_records-->
+		    <update_matched_records>true</update_matched_records>
+		    <reject_unmatched_records>false</reject_unmatched_records>
+		    <create-asset-records>false</create-asset-records>
+		    <create-asset-versions>true</create-asset-versions>
+		    <version_action/>
+		    <version-action>PUSH_ORIGINAL_TO_VERSION</version-action>
+		    <metadata-types>STORY</metadata-types>
+		    <child-records-to-delete>USAGE_ASSET</child-records-to-delete>
+		    <child_records/>
+		    <store-data-object-properties>
+		    	<story>
+				<OVERRIDE_DATE_STAMPS>true</OVERRIDE_DATE_STAMPS>
+			</story>
+		    </store-data-object-properties>
+		</config>
+            </module>
+            <module ref="Commits transaction">
+                <class>com.picdar.process2.Core.TransactionEnd</class>
+                <config/>
+            </module>
+            <!--module ref="Set owner">
+                <class>com.picdar.process2.Repository.Security.SetOwnershipAndPolicies</class>
+                <config>
+                   <readName>StoryMetadata</readName>
+                   <default><owner role="Media Scotland"/></default>
+                </config>
+            </module-->
+            <!--
+            <module ref="Links story to page">
+                <class>com.picdar.process2.Repository.EdificeLinker.EdificeLinker</class>
+                <config>
+                    <record-source>metadata</record-source>
+                    <asset-types>STORY</asset-types>
+                    <metadata-object-name>StoryMetadata</metadata-object-name>
+                </config>
+            </module>
+            -->
+        </modules>
+        <schedule>
+            <scheduletype>continuous</scheduletype>
+            <runinterval>
+                <count>5</count>
+                <intervalsize>minute</intervalsize>
+            </runinterval>
+            <timedschedule>
+                <months>1-12</months>
+                <dates>1,6,10</dates>
+                <weekdays>1-5</weekdays>
+                <hours>0,4,8,12,16,20</hours>
+                <minutes>0,15,30,45</minutes>
+            </timedschedule>
+        </schedule>
+    </config>
+</media-mogul-configuration>

@@ -1,0 +1,45 @@
+<media-mogul-configuration>
+	<config groupname="AssetDeleter">
+		<properties>
+			<CLASS hidden="true">Lifecycle Management</CLASS>
+			<TYPE hidden="true">Deleter</TYPE>
+			<NAME description="Process name">DTI Composite Weeder</NAME>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<TEMPLATE hidden="true">PurgerTemplate</TEMPLATE>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+
+			<weed description="Weed period for composites">10</weed>
+
+			<TEMPLATE_PROPERTIES>
+				<BATCH_SIZE>100</BATCH_SIZE>
+				<BATCH_LIMIT>0</BATCH_LIMIT>
+
+				<!--
+Select composites send to DTI for aggressive weeding since they are of no further use and will block images from getting weeded. To err on the save side, only weed composites that have not been touched recently. 
+				-->
+				<criteria><![CDATA[
+                asset_id in (
+	            select asset_id from composite c
+	            where
+                    c.platform = 'print' and
+                    c.sub_platform = 'DTI' and
+                    c.sub_type = 'collection' and
+                    c.creation_stamp &lt; (localtimestamp - interval '%%value:weed%%' day) and
+                    c.creation_stamp &gt; (localtimestamp - interval '30' day) and
+                    c.update_stamp &lt; (localtimestamp - interval '5' day)
+                )]]></criteria>
+				<allowed_status>Created</allowed_status>
+
+				<datasource>default</datasource>
+
+				<!-- Not currently used. -->
+				<saved_search_name description="Selection search">WeedingRule</saved_search_name>
+
+				<schedule-type>continuous</schedule-type>
+				<schedule-interval-count>24</schedule-interval-count>
+				<schedule-interval-type>hour</schedule-interval-type>
+			</TEMPLATE_PROPERTIES>
+		</properties>
+	</config>
+</media-mogul-configuration>

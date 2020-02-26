@@ -1,0 +1,29 @@
+<media-mogul-configuration>
+	<config groupname="Archiver">
+		<properties>
+			<CLASS hidden="true">Lifecycle Management</CLASS>
+			<TYPE hidden="true">Archiver</TYPE>
+			<NAME description="Process name">Archiver</NAME>
+			<APP_GROUP description="Application group">SYSGROUP1</APP_GROUP>
+			<AVOIDS_ABORTION hidden="true">y</AVOIDS_ABORTION>
+			<TEMPLATE hidden="true">ArchiverTemplate</TEMPLATE>
+			<NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
+
+			<TEMPLATE_PROPERTIES>
+				<BATCH_SIZE>10</BATCH_SIZE>
+
+				<datasource>default</datasource>
+				<additional-table>USAGE</additional-table>
+				<criteria>UPPER(asset.lifecycle_status) in ('CREATED', 'FEED', 'PARKED') and asset.asset_id = usage.asset_id
+                    and UPPER(usage.status) = 'PUBLISHED' and usage.update_stamp &gt; (localtimestamp - interval '%%value:since_last_modified:900%%' day)</criteria>
+				<!-- Not currently used -->
+				<saved_search_name description="Selection search">ArchivingRule</saved_search_name>
+				<since_last_modified>60</since_last_modified>
+
+				<schedule-type>manual</schedule-type>
+				<schedule-interval-count>1</schedule-interval-count>
+				<schedule-interval-type>minute</schedule-interval-type>
+			</TEMPLATE_PROPERTIES>
+		<!--schedule-type>scheduled</schedule-type><schedule-interval-count/><schedule-interval-type>minute</schedule-interval-type><schedule-timed-minutes>0</schedule-timed-minutes><schedule-timed-hours>21</schedule-timed-hours><schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/--><schedule-type>scheduled</schedule-type><schedule-interval-count/><schedule-interval-type>minute</schedule-interval-type><schedule-timed-minutes>0</schedule-timed-minutes><schedule-timed-hours>22</schedule-timed-hours><schedule-timed-weekdays/><schedule-timed-dates/><schedule-timed-months/><BLOCKED>n</BLOCKED></properties>
+	</config>
+</media-mogul-configuration>

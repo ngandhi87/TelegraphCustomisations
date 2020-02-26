@@ -1,7 +1,7 @@
 <media-mogul-configuration>
 	<config groupname="MakeBatch">
 		<properties>
-			<CLASS hidden="true">Telegraph Workflows</CLASS>
+			<CLASS hidden="true">Workflow</CLASS>
 			<TYPE hidden="true">Make Batch</TYPE>
 			<NAME description="The name of the process">Make Batch Process</NAME>
 			<APP_GROUP description="Application group">SYSGROUP2</APP_GROUP>
@@ -73,8 +73,8 @@
 		<schedule>
 			<scheduletype>continuous</scheduletype>
 			<runinterval>
-				<count>1</count>
-				<intervalsize>minute</intervalsize>
+				<count>30</count>
+				<intervalsize>second</intervalsize>
 			</runinterval>
 			<timedschedule>
 				<months>1-12</months>

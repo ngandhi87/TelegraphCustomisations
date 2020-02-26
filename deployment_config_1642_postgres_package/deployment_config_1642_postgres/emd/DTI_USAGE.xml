@@ -1,0 +1,57 @@
+<dbschema user="">
+	<table name="DTI_USAGE" aka="DTI Info" sequence="true" pktype="sequence" flags="READONLY" priority="" group_order="" asset_types="USAGE" multitabs_xml="" hidden_from_ui="false" hidden_except="">
+		<columns>
+			<column name="DESKNAME" fieldtype="STRING" length="100" aka="DTI desk name" freetext_type="text" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="TRANSFER_TIMECOMPLETED" fieldtype="DATE" length="0" aka="Transfer time completed" freetext_type="datetime" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="IMPORT_TIME" fieldtype="DATE" length="0" aka="Import time" freetext_type="datetime" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="WORKFLOW_STATUS" fieldtype="STRING" length="100" aka="DTI status" freetext_type="keyword" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="KIND_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="DESK" fieldtype="STRING" length="100" aka="Desk" freetext_type="text" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="UPDATE_STAMP" fieldtype="UPDATE_STAMP" length="0" flags="UPDATE_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="TRANSFER_TIMETAKEN" fieldtype="STRING" length="50" aka="Transfer time taken" freetext_type="text" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="CREATION_STAMP" fieldtype="CREATION_STAMP" length="0" flags="CREATION_STAMP,HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+			<column name="IMPORT_INFO" fieldtype="STRING" length="300" aka="Import info" freetext_type="text" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="TRANSFER_STATUS" fieldtype="STRING" length="100" aka="Transfer status" freetext_type="text" possible_values="" group="dti_info" properties="tab-order=0" />
+			<column name="ASSET_ID" fieldtype="STRING" length="24" nonull="Y" flags="HIDE_FROM_UI" freetext_type="" possible_values="" group="" properties="tab-order=0" />
+		</columns>
+		<constraints>
+			<constraint name="KIND_ID" type="PRIMARY_KEY">
+				<column name="KIND_ID" />
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="TRANSFER_TIMECOMPLETED" >
+				<column name="ASSET_ID" />
+				<column name="TRANSFER_TIMECOMPLETED" />
+			</index>
+			<index name="WORKFLOW_STATUS" >
+				<column name="ASSET_ID" />
+				<column name="WORKFLOW_STATUS" />
+			</index>
+			<index name="TRANSFER_STATUS" >
+				<column name="ASSET_ID" />
+				<column name="TRANSFER_STATUS" />
+			</index>
+			<index name="TRANSFER_TIMETAKEN" >
+				<column name="ASSET_ID" />
+				<column name="TRANSFER_TIMETAKEN" />
+			</index>
+			<index name="DESK" >
+				<column name="ASSET_ID" />
+				<column name="DESK" />
+			</index>
+			<index name="IMPORT_INFO" >
+				<column name="ASSET_ID" />
+				<column name="IMPORT_INFO" />
+			</index>
+			<index name="IMPORT_TIME" >
+				<column name="ASSET_ID" />
+				<column name="IMPORT_TIME" />
+			</index>
+			<index name="DESKNAME" >
+				<column name="ASSET_ID" />
+				<column name="DESKNAME" />
+			</index>
+		</indexes>
+	</table>
+</dbschema>

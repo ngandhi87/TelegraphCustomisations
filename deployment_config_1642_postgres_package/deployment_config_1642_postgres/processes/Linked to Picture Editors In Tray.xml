@@ -113,8 +113,8 @@ This process will process assets linked to 'Picture Editors In Tray' folder and 
 					<stores_field_names>no</stores_field_names>
 					<add_to_process_item>no</add_to_process_item>
 					<statement>delete from asset_category where asset_id = '@@read-from:__process-key@@' and node_id &lt;&gt; '@@read-from:QUEUE_INFO@@'</statement>
-					<statement>UPDATE HARD_CATEGORIES SET TIME_STAMP = cast(current_timestamp at time zone dbtimezone as date)</statement>
-					<statement>UPDATE MM_AUDIT SET DATE_MODIFIED = cast(current_timestamp at time zone dbtimezone as date) WHERE AUDIT_ID='HARD_CATEGORIES'</statement>
+					<statement>UPDATE HARD_CATEGORIES SET TIME_STAMP = localtimestamp</statement>
+					<statement>UPDATE MM_AUDIT SET DATE_MODIFIED = localtimestamp WHERE AUDIT_ID='HARD_CATEGORIES'</statement>
 				</config>
 			</module>
 

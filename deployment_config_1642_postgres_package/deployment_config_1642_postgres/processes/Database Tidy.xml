@@ -12,9 +12,7 @@
 			<scheduletype>scheduled</scheduletype>
 			<runinterval>
 				<count>24</count>
-
 				<intervalsize>hour</intervalsize>
-
 			</runinterval>
 			<timedschedule>
 				<hours>00</hours>
@@ -26,191 +24,390 @@
 		</schedule>
 
 		<modules>
-			<module ref="Delete_MIS_props">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from mm_mis_log_properties where event_id in (select event_id from mm_mis_log where time_stamp&lt; sysdate - 30)</statement>
-				</config>
-			</module>
 
+            <!-- Should this be moved into a different process and be done properly -->
 			<module ref="Delete_MIS">
 				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
 				<config>
 					<datasource>default</datasource>
-					<statement>delete from mm_mis_log where time_stamp&lt;sysdate - 30</statement>
-				</config>
-			</module>
-			<module ref="purge mm_lock_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from mm_lock_del</statement>
-				</config>
-			</module>
-			<module ref="purge ASSET_LOCATOR_PROPERTIES_DEL">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from ASSET_LOCATOR_PROPERTIES_DEL where timestamp&lt;sysdate - 365</statement>
-				</config>
-			</module>
-			<module ref="purge ASSET_LOCATOR_DEL">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from ASSET_LOCATOR_DEL where timestamp&lt;sysdate - 365</statement>
-				</config>
-			</module>
-			<module ref="purge mm_queue_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from mm_queue_del where timestamp&lt;sysdate - 30</statement>
-				</config>
-			</module>
-<!-- overspill queue relies on these values -->
-			<!--
-			<module ref="purge mm_index_queue_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from mm_index_queue_del  where timestamp&lt;sysdate - 30 </statement>
-				</config>
-			</module>
-			-->
-			<module ref="purge chp_index_queue_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from chp_index_queue_del  where timestamp&lt;sysdate - 30 </statement>
-				</config>
-			</module>
-			<module ref="purge asset_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from asset_del where timestamp&lt;sysdate - 2</statement>
-				</config>
-			</module>
-			<module ref="purge picture_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from picture_del where timestamp&lt;sysdate - 2</statement>
-				</config>
-			</module>
-			<module ref="purge story_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from story_del where timestamp&lt;sysdate - 2</statement>
-				</config>
-			</module>
-			<module ref="purge usage_del">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement>delete from usage_del where timestamp&lt;sysdate - 2</statement>
+                    <statement>delete from mm_mis_log_properties where event_id in (select event_id from mm_mis_log where time_stamp&lt; current_date - 30)</statement>
+					<statement>delete from mm_mis_log where time_stamp&lt;(localtimestamp - interval '30' day)</statement>
 				</config>
 			</module>
 
-			<module ref="purge asset_locator_properties_del">
+			<!-- <module ref="purge MM_QUEUE HiresAssetRelocateQueue when assets no longer exist">
 				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
 				<config>
 					<datasource>default</datasource>
-					<statement><![CDATA[ delete from ASSET_LOCATOR_PROPERTIES_DEL where timestamp < sysdate - 2 ]]></statement>
+					<statement><![CDATA[ delete from MM_QUEUE where creation_stamp < (localtimestamp - interval '10' day) and queue_name in ('AssetRelocateQueue', 'HiresAssetRelocateQueue') ]]></statement>
 				</config>
-			</module>
-			
-			<module ref="purge MM_ENRICH_QUEUE_DEL">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<!--
-					<statement><![CDATA[ delete from MM_ENRICH_QUEUE_DEL where timestamp < sysdate - 2 ]]></statement>
-					-->
-					<statement><![CDATA[ truncate table MM_ENRICH_QUEUE_DEL]]></statement>
-				</config>
-			</module>
-
-			<module ref="purge MM_MLT_ENRICH_QUEUE_DEL">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<!--
-					<statement><![CDATA[ delete from MM_MLT_ENRICH_QUEUE_DEL where timestamp < sysdate - 2 ]]></statement>
-					-->
-					<statement><![CDATA[ truncate table MM_MLT_ENRICH_QUEUE_DEL]]></statement>
-				</config>
-			</module>
-
-			<module ref="purge MM_QUEUE HiresAssetRelocateQueue when assets no longer exist">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement><![CDATA[ delete from MM_QUEUE where creation_stamp < sysdate - 10 and queue_name in ('AssetRelocateQueue', 'HiresAssetRelocateQueue') and last_error like 'No asset references found for cookie %' ]]></statement>
-				</config>
-			</module>
+			</module> -->
 
 			<module ref="purge MM_QUEUE for file that do not exist or are purged">
 				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
 				<config>
 					<datasource>default</datasource>
-					<statement><![CDATA[delete from mm_queue where creation_stamp < sysdate - 6 and  last_error like '%File or folder: % doesn''t exist.' ]]></statement>
+					<statement><![CDATA[delete from mm_queue where creation_stamp < (localtimestamp - interval '6' day) ]]></statement>
 				</config>
 			</module>
 
+            <module ref="Delete old workflow items">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
 
-			<module ref="purge MM_ENRICH_QUEUE of deleted files">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement><![CDATA[delete from mm_enrich_queue where 
-not exists ( select 1 from asset where asset_id = item_key )]]></statement>
-				</config>
-			</module>
+                    <!-- Remove any Sent to DTI Workflow jobs after 1 day -->
+                    <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;(localtimestamp - interval '1' day) and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Send to DTI')))</statement>
+                    <statement>delete from workflow_item where creation_stamp&lt;(localtimestamp - interval '1' day) and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Send to DTI'))</statement>
 
+                    <!-- For EA-1588 -->
+                    <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;(localtimestamp - interval '14' day) and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Library Correction') and is_final_state = '1'))</statement>
+                    <statement>delete from workflow_item where creation_stamp&lt;(localtimestamp - interval '14' day) and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Library Correction') and is_final_state = '1')</statement>
 
+                    <!-- For EA-1539 -->
+                    <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;(localtimestamp - interval '5' day) and state_id in (select node_id from workflow_hierarchy where parent_id in (select node_id from workflow_hierarchy where key in ('Set to Commissioned', 'Unset Commissioned', 'Set Handout Publicity Material', 'Unset Handout Publicity Material', 'Set to Social Media Internet', 'Unset Social Media Internet', 'Set to Getty Negotiated', 'Make Batch', 'Override Cost Indicator', 'Reset Cost Indicator')) and is_final_state = '1'))</statement>
+                    <statement>delete from workflow_item where creation_stamp&lt;(localtimestamp - interval '5' day) and state_id in (select node_id from workflow_hierarchy where parent_id in (select node_id from workflow_hierarchy where key in ('Set to Commissioned', 'Unset Commissioned', 'Set Handout Publicity Material', 'Unset Handout Publicity Material', 'Set to Social Media Internet', 'Unset Social Media Internet', 'Set to Getty Negotiated', 'Make Batch', 'Override Cost Indicator', 'Reset Cost Indicator')) and is_final_state = '1')</statement>
+                </config>
+            </module>
 
-			<module ref="purge MM_MLT_ENRICH_QUEUE of deleted files">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement><![CDATA[delete from mm_mlt_enrich_queue where 
-not exists ( select 1 from asset where asset_id = item_key )]]></statement>
-				</config>
-			</module>
+            <module ref="purge MM_PROCESS_MONITOR">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement><![CDATA[ delete from MM_PROCESS_MONITOR where LAST_UPDATE < (localtimestamp - interval '1' day) ]]></statement>
+                </config>
+            </module>
 
-			<module ref="Delete old workflow items">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					 <datasource>default</datasource>
-					 <!-- For EA-1588 -->
-					 <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-14 and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Library Correction') and is_final_state = '1'))</statement>
-					 <statement>delete from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-14 and state_id in (select node_id from workflow_hierarchy where parent_id = (select node_id from workflow_hierarchy where key = 'Library Correction') and is_final_state = '1')</statement>
+            <module ref="Purge old locks">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement><![CDATA[ DELETE FROM MM_LOCK WHERE DATE_CREATED < (localtimestamp - interval '1' day)]]></statement>
+                </config>
+            </module>
 
-					 <!-- For EA-1539 -->
-					 <statement>delete from workflow_item_asset where workflow_item_id in (select workflow_item_id from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-5 and state_id in (select node_id from workflow_hierarchy where parent_id in (select node_id from workflow_hierarchy where key in ('Set to Commissioned', 'Unset Commissioned', 'Set Handout Publicity Material', 'Unset Handout Publicity Material', 'Set to Social Media Internet', 'Unset Social Media Internet')) and is_final_state = '1'))</statement>
-					 <statement>delete from workflow_item where creation_stamp&lt;cast(current_timestamp at time zone dbtimezone as date)-5 and state_id in (select node_id from workflow_hierarchy where parent_id in (select node_id from workflow_hierarchy where key in ('Set to Commissioned', 'Unset Commissioned', 'Set Handout Publicity Material', 'Unset Handout Publicity Material', 'Set to Social Media Internet', 'Unset Social Media Internet')) and is_final_state = '1')</statement>
-				</config>
-			</module>
-			
-			<module ref="purge HARD_CATEGORIES_DEL">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement><![CDATA[ delete from HARD_CATEGORIES_DEL where timestamp < sysdate - 1 ]]></statement>
-				</config>
-			</module>
+            <module ref="Purge all MM_MLT_ENRICH_QUEUE as its no longer used at Telegraph">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement><![CDATA[truncate table mm_enrich_queue]]></statement>
+                    <statement><![CDATA[truncate table mm_mlt_enrich_queue]]></statement>
+                </config>
+            </module>
 
-			<module ref="purge MM_SHELF_DEL">
-				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
-				<config>
-					<datasource>default</datasource>
-					<statement><![CDATA[ delete from MM_SHELF_DEL where timestamp < sysdate - 1 ]]></statement>
-				</config>
-			</module>
+            <module ref="Delete rows older than 1 hour from all _DEL tables">
+                <class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
+                <config>
+                    <datasource>default</datasource>
+                    <statement><![CDATA[ delete from customer_type_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from pagecomponent_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_locator_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from content_picture_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_def_layout_user_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from secondary_asset_locator_pr_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from email_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dictionary_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from role_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from pgl_priv_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from feed_statistics_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from plugin_file_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from external_categories_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from application_manager_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from article_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from lookup_type_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_channels_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_collection_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from otca_categories_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from sections_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_task_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from help_en_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from folder_asset_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from organisation_hierarchy_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from load_source_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_section_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dti_usage_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from shelf_visibility_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_mis_log_sysman_properti_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_picture_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from page_section_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from search_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from security_hierarchy_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from usage_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_mis_log_sysman_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from publication_group_orghier__del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from email_asset_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dti_collection_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from profile_role_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_report_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from crop_markup_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from layout_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_sysmgt_prefs_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from channels_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_search_info_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from tmg_override_rights_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from document_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from autosave_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_privilege_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_hierarchy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_royalty_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from event_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from markup_props_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from forbidden_words_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from grouped_assets_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from security_hierarchy_props_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from price_band_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from pgl_group_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from results_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from page_turn_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_search_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_role_privileges_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from collections_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from viewed_asset_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from smd_hierarchy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from app_man_groups_secure_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from process_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from backlog_index_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dominant_colour_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from extra_metadata_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from price_lookup_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from test_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from queue_status_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from countries_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from smd_hierarchy_link_privs_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_app_prefs_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_index_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from security_hierarchy_link_pr_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_scripts_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from gallery_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from favourite_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from language_resource_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from biography_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_gallery_display_prop_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_privilege_role_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from named_clips_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from pref_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from media_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from plugin_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from results_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from object_comments_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_action_script_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from price_usage_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_adsize_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from process_config_values_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from rights_qualifier_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_role_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_layout_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from discovery_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_item_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from email_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from publication_group_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from publication_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_hierarchy_link_pr_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_index_queue_picture_lag_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_def_sm_layt_user_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_security_privilege_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from user_email_recipient_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_search_results_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from authentication_failures_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from icon_manager_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from coll_hierarchy_link_privs_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from picture_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_search_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from story_keywords_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from royalty_calculator_scripts_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_adtype_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_shelf_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_report_content_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from story_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from keywords_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_attachments_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from user_app_profile_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from collection_hierarchy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_privileges_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_info_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_copytype_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from picture_version_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from edition_lookup_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from planning_list_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from story_version_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from compound_version_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from category_hierarchy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_process_info_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from category_hierarchy_link_pr_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from document_version_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from composite_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_syndication_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_profile_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from auth_token_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_mis_log_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_report_data_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from folder_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from chp_notification_check_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_policy_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from discovery_hub_trends_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dashboard_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from soft_categories_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from publication_group_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_role_priv_attr_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from email_shelf_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from favourite_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_privilege_attribute_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from page_turn_usage_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from secondary_asset_locator_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from processed_items_log_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_privilege_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from ed_inst_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from feeds_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from specialistmd_hierarchy_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from excluded_facets_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_colour_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from transformer_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from content_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_ldap_user_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from photographers_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_notice_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from pub_pricing_property_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from byline_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from parked_asset_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_section_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_asset_shelf_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_date_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from gallery_picture_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from notprocessed_items_log_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_discovery_hub_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from shape_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_lock_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from crop_markup_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from noshare_bylines_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from group_priv_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from organisation_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_task_workload_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from edition_group_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from media_version_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_config_media_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_config_xml_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from system_messages_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_source_file_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_hier_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from task_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from copyright_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from scripts_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from chp_index_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from publication_lookup_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_lock_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_config_admin_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from system_messages_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_app_profile_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dti_story_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from commissioned_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from edition_instance_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from page_version_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from edition_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from user_security_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_mlt_enrich_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from packages_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_search_nodes_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from email_details_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from rights_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from profile_priv_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from external_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from discovery_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from profile_group_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_mis_analysis_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from template_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from page_section_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from hard_categories_props_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_preferences_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from task_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from language_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from pref_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_feeds_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from linked_asset_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_adposition_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_salesperson_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_security_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_index_queue_lag_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from supplier_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from noshare_titles_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from search_warning_terms_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_index_queue_media_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_mis_log_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_workflow_item_order_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from search_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_parking_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from people_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from packages_props_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from lookup_data_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from external_keywords_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from app_man_props_secure_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from notice_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_user_security_role_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from picdar_dual_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from sm_pref_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_task_info_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_system_status_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from source_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_role_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from platforms_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from providers_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_product_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from dashboard_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from moods_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from graphs_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from hard_categories_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_index_queue_document_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from chp_notification_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_gallery_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_source_file_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_audit_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from edifice_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from booking_subsection_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_hierarchy_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from has_queue_status_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_index_queue_picture_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from workflow_item_asset_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from client_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from page_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from upload_store_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from attachment_hierarchy_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_priv_group_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from security_hierarchy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from composite_asset_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_packages_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from order_item_supplier_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_enrich_queue_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_attch_wl_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from mm_order_assets_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from channel_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from sysmgt_pref_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from upload_template_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from markup_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from origin_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from web_external_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from tmg_rights_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from correction_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from agency_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from application_groups_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from application_manager_groups_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from app_groups_secure_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from app_man_properties_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from app_man_secure_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from article_templates_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from article_tmpl_policy_link_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_category_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_gallery_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_gallery_display_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                    <statement><![CDATA[ delete from asset_locator_del where timestamp < (localtimestamp - interval '1' hour)]]></statement>
+                </config>
+            </module>
 
 		</modules>
 	</config>

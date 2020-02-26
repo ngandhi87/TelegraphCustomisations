@@ -74,7 +74,9 @@
 			<!-- Start the transaction. -->
 			<module ref="TransactionStart">
 				<class>com.picdar.process2.Core.TransactionStart</class>
-				<config />
+                <config>
+                    <restriction>no-enrichment</restriction>
+                </config>
 			</module>
 
 			<!-- Save the asset. -->
