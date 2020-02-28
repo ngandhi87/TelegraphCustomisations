@@ -13,9 +13,9 @@
 				<class>com.picdar.process2.Repository.JDBCStatement.JDBCStatement</class>
 				<config>
 					<datasource>default</datasource>
-					<statement>DELETE FROM SYSTEM_MESSAGES_LINK WHERE MESSAGE_ID IN (SELECT MESSAGE_ID FROM SYSTEM_MESSAGES WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day))</statement>
-					<statement>DELETE FROM SYSTEM_MESSAGES WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day)</statement>
-					<statement>DELETE FROM CHP_NOTIFICATION WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day) LIMIT 10000</statement>
+					<statement>DELETE FROM SYSTEM_MESSAGES_LINK WHERE MESSAGE_ID IN (SELECT MESSAGE_ID FROM SYSTEM_MESSAGES WHERE creation_time &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day))</statement>
+					<statement>DELETE FROM SYSTEM_MESSAGES WHERE creation_time &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day)</statement>
+					<statement>DELETE FROM CHP_NOTIFICATION WHERE NOTIFICATION_ID IN (SELECT NOTIFICATION_ID FROM CHP_NOTIFICATION WHERE creation_stamp &lt;= (localtimestamp - interval '%%value:DEFAULT_PURGE%%' day) LIMIT 10000)</statement>
 				</config>
 			</module>
 		</modules>

@@ -65,7 +65,6 @@ This process will generate a list of assets with usages over than %%value:NO_OF_
                     <statement>
 						SELECT TO_CHAR(localtimestamp, 'DD/MM/YYYY HH24:MI:SS') AS DATE_WITH_TIME,
 						TO_CHAR(localtimestamp, 'YYYY_MM_DD') AS DATE_FILE_FORMAT
-						FROM DUAL
 					</statement>
                     <store_name>CURRENT_TIMESTAMP</store_name>
                     <stores_field_names>no</stores_field_names>

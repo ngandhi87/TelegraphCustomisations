@@ -4,7 +4,7 @@
         <properties>
             <CLASS hidden="true">Maintenance</CLASS>
             <TYPE hidden="true">Checker</TYPE>
-            <NAME description="Name">Page Asset Checker</NAME>
+            <NAME description="Name">Asset Checker - Pages</NAME>
             <APP_GROUP>SYSGROUP1</APP_GROUP>
             <START_URL/>
             <NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
@@ -40,6 +40,7 @@
             <ASSET_RETRIEVAL_TYPES description="List of types to retrieve" position="3">all</ASSET_RETRIEVAL_TYPES>
             <QUEUE_NAME description="Name of the queue to use for reporting problems" position="4">PAGE_ASSET_CHECKER</QUEUE_NAME>
             <CLEAR_QUEUE_AT_START description="Flag indicating whether to clear the report queue first" position="5" type="checkbox">N</CLEAR_QUEUE_AT_START>
+            <OFFSET_FUTURE_DATE description="Offset in seconds for checking the future timestamp fields" position="6">2592000</OFFSET_FUTURE_DATE>
             <BLOCKED>n</BLOCKED>
             <TEMPLATE/>
         </properties>
@@ -54,6 +55,7 @@
                     <asset_retrieval_types>%%value:ASSET_RETRIEVAL_TYPES%%</asset_retrieval_types>
                     <queue_name>%%value:QUEUE_NAME%%</queue_name>
                     <clear_queue_at_start>%%value:CLEAR_QUEUE_AT_START%%</clear_queue_at_start>
+                    <offset_future_date>%%value:OFFSET_FUTURE_DATE%%</offset_future_date>
                 </config>
             </module>
         </modules>

@@ -4,13 +4,12 @@
         <properties>
             <CLASS hidden="true">Maintenance</CLASS>
             <TYPE hidden="true">Checker</TYPE>
-            <NAME description="Name">Story Asset Checker</NAME>
-            <APP_GROUP>SYSGROUP2</APP_GROUP>
+            <NAME description="Name">Asset Checker - Pictures</NAME>
+            <APP_GROUP>SYSGROUP1</APP_GROUP>
             <START_URL/>
             <NORMALLY_RUNNING hidden="true">y</NORMALLY_RUNNING>
             <DESCRIPTION description="Summary" position="0" type="instruction">
-                                                			      
-                
+                                			      
                 
                 <![CDATA[
 			      The SQL to use for selecting assets to check can be configured. This should select a set of ASSET_ID values.
@@ -28,16 +27,16 @@
 			      <br/>
 			      The types to retrieve is a comma separated list of binary asset files to retrieve when running check-asset-files. (e.g. "thumbnail,preview" or "all").
 			      ]]>
-                                                			      
-            
+                                			      
             
             </DESCRIPTION>
             <ASSET_SQL database="postgres" description="SQL to select assets to be checked" position="1">select asset_id from picture where creation_stamp&gt;now()-INTERVAL '15' MINUTE</ASSET_SQL>
-            <ASSET_SQL database="oracle" description="SQL to select assets to be checked" position="1">select asset_id from story where creation_stamp&gt;cast(current_timestamp at time zone dbtimezone as date)-INTERVAL '15' MINUTE</ASSET_SQL>
+            <ASSET_SQL database="oracle" description="SQL to select assets to be checked" position="1">select asset_id from picture where creation_stamp&gt;cast(current_timestamp at time zone dbtimezone as date)-INTERVAL '15' MINUTE</ASSET_SQL>
             <ASSET_CHECKS description="List of checks to perform on assets" position="2">all</ASSET_CHECKS>
             <ASSET_RETRIEVAL_TYPES description="List of types to retrieve" position="3">all</ASSET_RETRIEVAL_TYPES>
-            <QUEUE_NAME description="Name of the queue to use for reporting problems" position="4">STORY_ASSET_CHECKER</QUEUE_NAME>
+            <QUEUE_NAME description="Name of the queue to use for reporting problems" position="4">PICTURE_ASSET_CHECKER</QUEUE_NAME>
             <CLEAR_QUEUE_AT_START description="Flag indicating whether to clear the report queue first" position="5" type="checkbox">N</CLEAR_QUEUE_AT_START>
+            <OFFSET_FUTURE_DATE description="Offset in seconds for checking the future timestamp fields" position="6">300</OFFSET_FUTURE_DATE>
             <BLOCKED>n</BLOCKED>
             <TEMPLATE/>
         </properties>
@@ -52,6 +51,7 @@
                     <asset_retrieval_types>%%value:ASSET_RETRIEVAL_TYPES%%</asset_retrieval_types>
                     <queue_name>%%value:QUEUE_NAME%%</queue_name>
                     <clear_queue_at_start>%%value:CLEAR_QUEUE_AT_START%%</clear_queue_at_start>
+                    <offset_future_date>%%value:OFFSET_FUTURE_DATE%%</offset_future_date>
                 </config>
             </module>
         </modules>

@@ -286,7 +286,7 @@ Note3 - unconfigured folders will still be processed but the ownership will be l
 				<config>
 					<datasource>default</datasource>
 					<use-at>true</use-at>
-					<statement><![CDATA[ DELETE from asset_category where NODE_ID='@@read-from:FIELD.NODE_ID@@' and ASSET_ID='@@read-from:FIELD.ASSET_ID@@' LIMIT 2]]></statement>
+					<statement><![CDATA[ DELETE from asset_category where NODE_ID='@@read-from:FIELD.NODE_ID@@' and ASSET_ID='@@read-from:FIELD.ASSET_ID@@']]></statement>
 					<statement><![CDATA[ UPDATE HARD_CATEGORIES SET TIME_STAMP = localtimestamp WHERE NODE_ID='@@read-from:FIELD.NODE_ID@@']]></statement>
 					<statement><![CDATA[ update MM_AUDIT set DATE_MODIFIED=localtimestamp where audit_id in('ASSET_CATEGORY','HARD_CATEGORIES')]]></statement>
 					<object-source>ONE_NODE</object-source>
